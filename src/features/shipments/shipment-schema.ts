@@ -1,0 +1,22 @@
+import { z } from "zod"
+
+const optionalString = z.preprocess(
+  (value) => (value === null || value === "" ? undefined : value),
+  z.string().optional(),
+)
+
+export const shipmentSchema = z.object({
+  shipment_code: z.string().min(2, "Shipment code is required"),
+  carrier_name: optionalString,
+  method: z.enum(["luggage", "courier", "cargo"]),
+  sent_date: optionalString,
+  expected_arrival_date: optionalString,
+  shipping_cost: z.coerce.number().min(0),
+  customs_cost: z.coerce.number().min(0),
+  notes: optionalString,
+})
+
+export const shipmentItemSchema = z.object({
+  product_id: z.string().uuid(),
+  quantity: z.coerce.number().min(1),
+})
