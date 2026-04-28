@@ -1,4 +1,6 @@
+import { ErrorState } from "@/components/shared/error-state"
 import { MetricCard } from "@/components/shared/metric-card"
+import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
@@ -49,14 +51,7 @@ export default async function ReportsPage() {
     .returns<ExpenseRow[]>()
 
   if (salesError || expensesError) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load reports</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Please refresh the page or try again later.
-        </p>
-      </div>
-    )
+    return <ErrorState title="Could not load reports" />
   }
 
   const productMap = new Map<
@@ -154,12 +149,10 @@ export default async function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground">
-          Analyze profitability, sales performance, and monthly business trends.
-        </p>
-      </div>
+      <PageHeader
+        title="Reports"
+        description="Analyze profitability, sales performance, and monthly business trends."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard

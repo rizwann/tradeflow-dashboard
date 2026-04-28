@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -27,16 +28,15 @@ type ProductTableProps = {
 export function ProductTable({ products }: ProductTableProps) {
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-8 text-center">
-        <h2 className="font-semibold">No products yet</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Add your first product to start tracking inventory.
-        </p>
-
-        <Button asChild className="mt-4">
-          <Link href="/products/new">Add product</Link>
-        </Button>
-      </div>
+      <EmptyState
+        title="No products yet"
+        description="Add your first product to start tracking inventory."
+        action={
+          <Button asChild>
+            <Link href="/products/new">Add product</Link>
+          </Button>
+        }
+      />
     )
   }
 
