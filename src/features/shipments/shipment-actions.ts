@@ -47,11 +47,35 @@ export async function createShipment(formData: FormData) {
   const productIds = formData.getAll("product_id")
   const quantities = formData.getAll("quantity")
 
-  const items = productIds.map((id, index) => ({
-    shipment_id: shipment.id,
-    product_id: id,
-    quantity: Number(quantities[index]),
-  }))
+  const totalQuantity = quantities.reduce((sum, quantity) => {
+    return sum + Number(quantity)
+  }, 0)
+
+  if (totalQuantity <= 0) {
+    throw new Error("Shipment must have at least one valid item quantity")
+  }
+
+  const totalShippingCost = parsed.data.shipping_cost
+  const totalCustomsCost = parsed.data.customs_cost
+
+  const items = productIds.map((id, index) => {
+    const quantity = Number(quantities[index])
+    const quantityRatio = quantity / totalQuantity
+
+    const allocatedShippingCost = totalShippingCost * quantityRatio
+    const allocatedCustomsCost = totalCustomsCost * quantityRatio
+    const allocatedTotalCost = allocatedShippingCost + allocatedCustomsCost
+
+    return {
+      shipment_id: shipment.id,
+      product_id: String(id),
+      quantity,
+      allocated_cost: allocatedTotalCost,
+      allocated_shipping_cost: allocatedShippingCost,
+      allocated_customs_cost: allocatedCustomsCost,
+      landed_cost_per_unit: allocatedTotalCost / quantity,
+    }
+  })
 
   await supabase.from("shipment_items").insert(items)
 
@@ -109,21 +133,21 @@ export async function markShipmentAsSent(shipmentId: string) {
     throw new Error("Shipment has no items")
   }
 
-try {
-  for (const item of items) {
-    await moveInventory({
-      supabase,
-      productId: item.product_id,
-      fromLocation: "germany",
-      toLocation: "in_transit",
-      quantity: item.quantity,
-      userId: user.id,
-      reason: "shipment_sent",
-    });
+  try {
+    for (const item of items) {
+      await moveInventory({
+        supabase,
+        productId: item.product_id,
+        fromLocation: "germany",
+        toLocation: "in_transit",
+        quantity: item.quantity,
+        userId: user.id,
+        reason: "shipment_sent",
+      })
+    }
+  } catch {
+    redirect("/shipments?error=insufficient-stock")
   }
-} catch {
-  redirect("/shipments?error=insufficient-stock");
-}
 
   const { error: updateError } = await supabase
     .from("shipments")
