@@ -4,27 +4,28 @@ import { createClient } from "@/lib/supabase/server"
 import { shipmentSchema } from "./shipment-schema"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { moveInventory } from "@/lib/inventory"
 
 export async function createShipment(formData: FormData) {
   const supabase = await createClient()
 
-const raw = {
-  shipment_code: formData.get("shipment_code"),
-  carrier_name: formData.get("carrier_name"),
-  method: formData.get("method"),
-  sent_date: formData.get("sent_date"),
-  expected_arrival_date: formData.get("expected_arrival_date"),
-  shipping_cost: formData.get("shipping_cost") || "0",
-  customs_cost: formData.get("customs_cost") || "0",
-  notes: formData.get("notes"),
-}
+  const raw = {
+    shipment_code: formData.get("shipment_code"),
+    carrier_name: formData.get("carrier_name"),
+    method: formData.get("method"),
+    sent_date: formData.get("sent_date"),
+    expected_arrival_date: formData.get("expected_arrival_date"),
+    shipping_cost: formData.get("shipping_cost") || "0",
+    customs_cost: formData.get("customs_cost") || "0",
+    notes: formData.get("notes"),
+  }
 
   const parsed = shipmentSchema.safeParse(raw)
 
-if (!parsed.success) {
-  console.log(parsed.error.flatten());
-  throw new Error("Invalid shipment");
-}
+  if (!parsed.success) {
+    console.log(parsed.error.flatten())
+    throw new Error("Invalid shipment")
+  }
 
   const {
     data: { user },
@@ -63,4 +64,162 @@ if (!parsed.success) {
 
   revalidatePath("/shipments")
   redirect("/shipments")
+}
+export async function markShipmentAsSent(shipmentId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    throw new Error("Only admin can send shipments")
+  }
+
+  const { data: shipment, error: shipmentError } = await supabase
+    .from("shipments")
+    .select("id, status")
+    .eq("id", shipmentId)
+    .single()
+
+  if (shipmentError || !shipment) {
+    throw new Error("Shipment not found")
+  }
+
+  if (shipment.status !== "draft") {
+    throw new Error("Only draft shipments can be marked as sent")
+  }
+
+  const { data: items, error: itemsError } = await supabase
+    .from("shipment_items")
+    .select("product_id, quantity")
+    .eq("shipment_id", shipmentId)
+
+  if (itemsError || !items || items.length === 0) {
+    throw new Error("Shipment has no items")
+  }
+
+try {
+  for (const item of items) {
+    await moveInventory({
+      supabase,
+      productId: item.product_id,
+      fromLocation: "germany",
+      toLocation: "in_transit",
+      quantity: item.quantity,
+      userId: user.id,
+      reason: "shipment_sent",
+    });
+  }
+} catch {
+  redirect("/shipments?error=insufficient-stock");
+}
+
+  const { error: updateError } = await supabase
+    .from("shipments")
+    .update({
+      status: "sent",
+      sent_date: new Date().toISOString().slice(0, 10),
+    })
+    .eq("id", shipmentId)
+
+  if (updateError) {
+    throw new Error(updateError.message)
+  }
+
+  await supabase.from("audit_logs").insert({
+    action: "shipment_status_changed",
+    entity_type: "shipment",
+    entity_id: shipmentId,
+    user_id: user.id,
+    metadata: {
+      from_status: "draft",
+      to_status: "sent",
+    },
+  })
+
+  revalidatePath("/shipments")
+}
+
+export async function markShipmentAsReceived(shipmentId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  const { data: shipment, error: shipmentError } = await supabase
+    .from("shipments")
+    .select("id, status")
+    .eq("id", shipmentId)
+    .single()
+
+  if (shipmentError || !shipment) {
+    throw new Error("Shipment not found")
+  }
+
+  if (shipment.status !== "sent") {
+    throw new Error("Only sent shipments can be marked as received")
+  }
+
+  const { data: items, error: itemsError } = await supabase
+    .from("shipment_items")
+    .select("product_id, quantity")
+    .eq("shipment_id", shipmentId)
+
+  if (itemsError || !items || items.length === 0) {
+    throw new Error("Shipment has no items")
+  }
+
+  for (const item of items) {
+    await moveInventory({
+      supabase,
+      productId: item.product_id,
+      fromLocation: "in_transit",
+      toLocation: "bangladesh",
+      quantity: item.quantity,
+      userId: user.id,
+      reason: "shipment_received",
+    })
+  }
+
+  const { error: updateError } = await supabase
+    .from("shipments")
+    .update({
+      status: "received",
+      received_date: new Date().toISOString().slice(0, 10),
+    })
+    .eq("id", shipmentId)
+
+  if (updateError) {
+    throw new Error(updateError.message)
+  }
+
+  await supabase.from("audit_logs").insert({
+    action: "shipment_status_changed",
+    entity_type: "shipment",
+    entity_id: shipmentId,
+    user_id: user.id,
+    metadata: {
+      from_status: "sent",
+      to_status: "received",
+    },
+  })
+
+  revalidatePath("/shipments")
+  revalidatePath("/inventory")
 }
