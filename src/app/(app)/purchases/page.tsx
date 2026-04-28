@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { Plus } from "lucide-react"
+import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 
@@ -22,13 +24,18 @@ export default async function PurchasesPage() {
     .returns<PurchaseRow[]>()
   return (
     <div className="space-y-6">
-      <div className="flex justify-between">
-        <h1 className="text-3xl font-bold">Purchases</h1>
-
-        <Button asChild>
-          <Link href="/purchases/new">Add purchase</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Purchases"
+        description="Track purchase orders, quantities, and supplier costs."
+        actions={
+          <Button asChild>
+            <Link href="/purchases/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add purchase
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="rounded-xl border bg-background p-4">
         {data?.map((p) => {

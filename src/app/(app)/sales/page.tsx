@@ -1,5 +1,8 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { EmptyState } from "@/components/shared/empty-state"
+import { ErrorState } from "@/components/shared/error-state"
+import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
@@ -34,31 +37,23 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
     .returns<SaleRow[]>()
 
   if (error) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load sales</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
-    )
+    return <ErrorState title="Could not load sales" message={error.message} />
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sales</h1>
-          <p className="text-muted-foreground">
-            Record Bangladesh-side sales and customer payments.
-          </p>
-        </div>
-
-        <Button asChild>
-          <Link href="/sales/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Record sale
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Sales"
+        description="Record Bangladesh-side sales and customer payments."
+        actions={
+          <Button asChild>
+            <Link href="/sales/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Record sale
+            </Link>
+          </Button>
+        }
+      />
 
       {params.error === "no-bangladesh-stock" ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
@@ -105,12 +100,10 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
             })}
           </div>
         ) : (
-          <div className="p-8 text-center">
-            <h2 className="font-semibold">No sales yet</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Record your first sale after receiving inventory in Bangladesh.
-            </p>
-          </div>
+          <EmptyState
+            title="No sales yet"
+            description="Record your first sale after receiving inventory in Bangladesh."
+          />
         )}
       </div>
     </div>

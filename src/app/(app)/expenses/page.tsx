@@ -1,5 +1,8 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { EmptyState } from "@/components/shared/empty-state"
+import { ErrorState } from "@/components/shared/error-state"
+import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
@@ -32,10 +35,7 @@ export default async function ExpensesPage() {
 
   if (error) {
     return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load expenses</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
+      <ErrorState title="Could not load expenses" message={error.message} />
     )
   }
 
@@ -46,21 +46,18 @@ export default async function ExpensesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-          <p className="text-muted-foreground">
-            Track operational costs related to shipments and resale.
-          </p>
-        </div>
-
-        <Button asChild>
-          <Link href="/expenses/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add expense
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Expenses"
+        description="Track operational costs related to shipments and resale."
+        actions={
+          <Button asChild>
+            <Link href="/expenses/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add expense
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="rounded-xl border bg-background p-4 shadow-sm">
         <p className="text-sm text-muted-foreground">Total BDT expenses</p>
@@ -97,12 +94,10 @@ export default async function ExpensesPage() {
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center">
-            <h2 className="font-semibold">No expenses yet</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Add your first expense to start tracking operational costs.
-            </p>
-          </div>
+          <EmptyState
+            title="No expenses yet"
+            description="Add your first expense to start tracking operational costs."
+          />
         )}
       </div>
     </div>

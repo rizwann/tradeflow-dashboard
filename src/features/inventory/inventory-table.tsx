@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/empty-state"
 import { StatusBadge } from "@/components/shared/status-badge"
 import {
   Table,
@@ -31,12 +32,10 @@ type InventoryTableProps = {
 export function InventoryTable({ rows }: InventoryTableProps) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-8 text-center">
-        <h2 className="font-semibold">No inventory yet</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Record purchases first to add Germany-side stock.
-        </p>
-      </div>
+      <EmptyState
+        title="No inventory yet"
+        description="Record purchases first to add Germany-side stock."
+      />
     )
   }
 

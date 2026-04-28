@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { ErrorState } from "@/components/shared/error-state"
+import { PageHeader } from "@/components/shared/page-header"
 import { ProductTable } from "@/features/products/product-table"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
@@ -16,30 +18,24 @@ export default async function ProductsPage() {
 
   if (error) {
     return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load products</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
+      <ErrorState title="Could not load products" message={error.message} />
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">
-            Manage product catalog, pricing, SKUs, and categories.
-          </p>
-        </div>
-
-        <Button asChild>
-          <Link href="/products/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add product
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Products"
+        description="Manage product catalog, pricing, SKUs, and categories."
+        actions={
+          <Button asChild>
+            <Link href="/products/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add product
+            </Link>
+          </Button>
+        }
+      />
 
       <ProductTable products={products ?? []} />
     </div>

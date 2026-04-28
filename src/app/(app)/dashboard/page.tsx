@@ -1,4 +1,6 @@
+import { ErrorState } from "@/components/shared/error-state"
 import { MetricCard } from "@/components/shared/metric-card"
+import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { RevenueExpenseChart } from "@/features/dashboard/revenue-expense-chart"
 import { calculateNetProfit, calculateProfitMargin } from "@/lib/calculations"
@@ -55,14 +57,7 @@ export default async function DashboardPage() {
     .returns<InventoryRow[]>()
 
   if (salesError || expensesError || inventoryError) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load dashboard</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Please refresh the page or try again later.
-        </p>
-      </div>
-    )
+    return <ErrorState title="Could not load dashboard" />
   }
 
   const totalRevenue = (sales ?? []).reduce((sum, sale) => {
@@ -154,12 +149,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of revenue, expenses, profit, and inventory movement.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Overview of revenue, expenses, profit, and inventory movement."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard

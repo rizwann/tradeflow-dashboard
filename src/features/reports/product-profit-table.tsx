@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/empty-state"
 import {
   Table,
   TableBody,
@@ -28,12 +29,10 @@ function formatBDT(value: number) {
 export function ProductProfitTable({ rows }: ProductProfitTableProps) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-8 text-center">
-        <h2 className="font-semibold">No sales data yet</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Record sales to generate product profitability reports.
-        </p>
-      </div>
+      <EmptyState
+        title="No sales data yet"
+        description="Record sales to generate product profitability reports."
+      />
     )
   }
 

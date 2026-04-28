@@ -1,4 +1,6 @@
+import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
+import { PageHeader } from "@/components/shared/page-header"
 import { InventoryTable } from "@/features/inventory/inventory-table"
 
 type ProductRow = {
@@ -26,14 +28,7 @@ export default async function InventoryPage() {
     .select("product_id, location, quantity")
 
   if (productsError || inventoryError) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load inventory</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Please refresh the page or try again later.
-        </p>
-      </div>
-    )
+    return <ErrorState title="Could not load inventory" />
   }
 
   const inventoryRecords = (inventory ?? []) as InventoryRecord[]
@@ -73,12 +68,10 @@ export default async function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-        <p className="text-muted-foreground">
-          Track stock across Germany, in transit, and Bangladesh.
-        </p>
-      </div>
+      <PageHeader
+        title="Inventory"
+        description="Track stock across Germany, in transit, and Bangladesh."
+      />
 
       <InventoryTable rows={rows} />
     </div>
