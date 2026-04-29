@@ -175,6 +175,18 @@ export async function markShipmentAsSent(shipmentId: string) {
   revalidatePath("/shipments")
 }
 
+type ShipmentItemForBatch = {
+  id: string
+  product_id: string
+  quantity: number
+  allocated_shipping_cost: number
+  allocated_customs_cost: number
+  landed_cost_per_unit: number
+  products: {
+    purchase_price_bdt: number
+  } | null
+}
+
 export async function markShipmentAsReceived(shipmentId: string) {
   const supabase = await createClient()
 
@@ -200,10 +212,23 @@ export async function markShipmentAsReceived(shipmentId: string) {
     throw new Error("Only sent shipments can be marked as received")
   }
 
-  const { data: items, error: itemsError } = await supabase
-    .from("shipment_items")
-    .select("product_id, quantity")
-    .eq("shipment_id", shipmentId)
+const { data: items, error: itemsError } = await supabase
+  .from("shipment_items")
+  .select(
+    `
+    id,
+    product_id,
+    quantity,
+    allocated_shipping_cost,
+    allocated_customs_cost,
+    landed_cost_per_unit,
+    products (
+      purchase_price_bdt
+    )
+  `,
+  )
+  .eq("shipment_id", shipmentId)
+  .returns<ShipmentItemForBatch[]>()
 
   if (itemsError || !items || items.length === 0) {
     throw new Error("Shipment has no items")
@@ -219,6 +244,49 @@ export async function markShipmentAsReceived(shipmentId: string) {
       userId: user.id,
       reason: "shipment_received",
     })
+  }
+  const { data: existingBatches } = await supabase
+    .from("inventory_batches")
+    .select("id")
+    .eq("shipment_id", shipmentId)
+    .limit(1)
+
+  if (existingBatches && existingBatches.length > 0) {
+    throw new Error("Inventory batches already exist for this shipment")
+  }
+  const batches = items.map((item) => {
+    const purchasePriceBDT = Number(item.products?.purchase_price_bdt ?? 0)
+
+    const allocatedShippingCostPerUnit =
+      Number(item.allocated_shipping_cost ?? 0) / item.quantity
+
+    const allocatedCustomsCostPerUnit =
+      Number(item.allocated_customs_cost ?? 0) / item.quantity
+
+    const shipmentCostPerUnit = Number(item.landed_cost_per_unit ?? 0)
+
+    const fullLandedCostPerUnit = purchasePriceBDT + shipmentCostPerUnit
+
+    return {
+      product_id: item.product_id,
+      shipment_id: shipmentId,
+      shipment_item_id: item.id,
+      original_quantity: item.quantity,
+      remaining_quantity: item.quantity,
+      purchase_price_bdt: purchasePriceBDT,
+      allocated_shipping_cost_per_unit: allocatedShippingCostPerUnit,
+      allocated_customs_cost_per_unit: allocatedCustomsCostPerUnit,
+      landed_cost_per_unit: fullLandedCostPerUnit,
+      received_at: new Date().toISOString(),
+    }
+  })
+
+  const { error: batchError } = await supabase
+    .from("inventory_batches")
+    .insert(batches)
+
+  if (batchError) {
+    throw new Error(batchError.message)
   }
 
   const { error: updateError } = await supabase
