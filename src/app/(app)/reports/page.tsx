@@ -36,6 +36,8 @@ type SaleBatchConsumptionRow = {
   product_id: string
   quantity: number
   total_cost: number
+  total_revenue: number
+  gross_profit: number
   inventory_batches: {
     shipment_id: string | null
   } | null
@@ -70,6 +72,8 @@ export default async function ReportsPage() {
       product_id,
       quantity,
       total_cost,
+      total_revenue,
+      gross_profit,
       inventory_batches (
         shipment_id
       )
@@ -151,34 +155,13 @@ export default async function ReportsPage() {
     Array.from(productMap.values()),
   ).sort((a, b) => b.grossProfit - a.grossProfit)
 
-  const revenueByProduct = new Map<
-    string,
-    {
-      quantitySold: number
-      revenue: number
-    }
-  >()
-
-  for (const sale of sales ?? []) {
-    const revenue =
-      sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
-
-    const existing = revenueByProduct.get(sale.product_id) ?? {
-      quantitySold: 0,
-      revenue: 0,
-    }
-
-    existing.quantitySold += sale.quantity
-    existing.revenue += revenue
-
-    revenueByProduct.set(sale.product_id, existing)
-  }
-
-  const shipmentCostMap = new Map<
+  const shipmentProfitMap = new Map<
     string,
     {
       shipmentId: string
       landedCost: number
+      revenue: number
+      grossProfit: number
     }
   >()
 
@@ -187,44 +170,18 @@ export default async function ReportsPage() {
 
     if (!shipmentId) continue
 
-    const existing = shipmentCostMap.get(shipmentId) ?? {
+    const existing = shipmentProfitMap.get(shipmentId) ?? {
       shipmentId,
       landedCost: 0,
+      revenue: 0,
+      grossProfit: 0,
     }
 
     existing.landedCost += Number(consumption.total_cost)
+    existing.revenue += Number(consumption.total_revenue)
+    existing.grossProfit += Number(consumption.gross_profit)
 
-    shipmentCostMap.set(shipmentId, existing)
-  }
-
-  const shipmentRevenueMap = new Map<
-    string,
-    {
-      shipmentId: string
-      estimatedRevenue: number
-    }
-  >()
-
-  for (const consumption of saleBatchConsumptions ?? []) {
-    const shipmentId = consumption.inventory_batches?.shipment_id
-
-    if (!shipmentId) continue
-
-    const productRevenue = revenueByProduct.get(consumption.product_id)
-
-    const averageRevenuePerUnit =
-      productRevenue && productRevenue.quantitySold > 0
-        ? productRevenue.revenue / productRevenue.quantitySold
-        : 0
-
-    const existing = shipmentRevenueMap.get(shipmentId) ?? {
-      shipmentId,
-      estimatedRevenue: 0,
-    }
-
-    existing.estimatedRevenue += averageRevenuePerUnit * consumption.quantity
-
-    shipmentRevenueMap.set(shipmentId, existing)
+    shipmentProfitMap.set(shipmentId, existing)
   }
 
   const shipmentProfitRows = (shipmentProfitSource ?? [])
@@ -234,12 +191,12 @@ export default async function ReportsPage() {
         0,
       )
 
-      const landedCost = shipmentCostMap.get(shipment.id)?.landedCost ?? 0
+      const shipmentProfit = shipmentProfitMap.get(shipment.id)
 
-      const estimatedRevenue =
-        shipmentRevenueMap.get(shipment.id)?.estimatedRevenue ?? 0
+      const landedCost = shipmentProfit?.landedCost ?? 0
+      const estimatedRevenue = shipmentProfit?.revenue ?? 0
+      const grossProfit = shipmentProfit?.grossProfit ?? 0
 
-      const grossProfit = estimatedRevenue - landedCost
       const margin =
         estimatedRevenue === 0 ? 0 : (grossProfit / estimatedRevenue) * 100
 
@@ -365,11 +322,9 @@ export default async function ReportsPage() {
       </div>
 
       <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-        Business note: product profit now uses actual FIFO batch costs from
-        recorded sales. Shipment landed cost is also based on actual consumed
-        batches. Shipment revenue is still estimated from average product
-        selling price because sale revenue is not yet allocated per consumed
-        batch.
+        Business note: product and shipment profitability now use FIFO batch
+        costs. Shipment revenue is allocated from actual sale revenue to the
+        consumed batches, making shipment profit accurate for recorded sales.
       </div>
     </div>
   )

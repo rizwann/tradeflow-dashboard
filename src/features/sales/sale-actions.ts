@@ -91,11 +91,18 @@ export async function createSale(formData: FormData) {
   })
 
   try {
+    const totalSaleRevenue =
+      parsed.data.quantity * parsed.data.unit_selling_price_bdt -
+      Number(parsed.data.discount ?? 0)
+
+    const revenuePerUnit = totalSaleRevenue / parsed.data.quantity
+
     await consumeFifoBatches({
       supabase,
       saleId: sale.id,
       productId: parsed.data.product_id,
       quantity: parsed.data.quantity,
+      revenuePerUnit,
     })
   } catch {
     redirect("/sales?error=insufficient-fifo-batches")
