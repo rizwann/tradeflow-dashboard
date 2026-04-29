@@ -68,6 +68,13 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
         </div>
       ) : null}
 
+      {params.error === "insufficient-fifo-batches" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          This product has Bangladesh inventory, but no matching FIFO cost
+          batches. Receive a shipment again or check inventory batch data.
+        </div>
+      ) : null}
+
       <div className="rounded-xl border bg-background shadow-sm">
         {sales.length ? (
           <div className="divide-y">
