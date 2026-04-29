@@ -1,4 +1,3 @@
-import { EmptyState } from "@/components/shared/empty-state"
 import {
   Table,
   TableBody,
@@ -13,7 +12,7 @@ type ProductProfitRow = {
   productName: string
   quantitySold: number
   revenue: number
-  productCost: number
+  landedCostTotal: number
   grossProfit: number
   margin: number
 }
@@ -29,10 +28,12 @@ function formatBDT(value: number) {
 export function ProductProfitTable({ rows }: ProductProfitTableProps) {
   if (rows.length === 0) {
     return (
-      <EmptyState
-        title="No sales data yet"
-        description="Record sales to generate product profitability reports."
-      />
+      <div className="rounded-xl border bg-background p-8 text-center">
+        <h2 className="font-semibold">No sales data yet</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Record sales to generate product profitability reports.
+        </p>
+      </div>
     )
   }
 
@@ -44,7 +45,7 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
             <TableHead>Product</TableHead>
             <TableHead className="text-right">Qty sold</TableHead>
             <TableHead className="text-right">Revenue</TableHead>
-            <TableHead className="text-right">Product cost</TableHead>
+            <TableHead className="text-right">Landed cost</TableHead>
             <TableHead className="text-right">Gross profit</TableHead>
             <TableHead className="text-right">Margin</TableHead>
           </TableRow>
@@ -59,7 +60,7 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
                 {formatBDT(row.revenue)}
               </TableCell>
               <TableCell className="text-right">
-                {formatBDT(row.productCost)}
+                {formatBDT(row.landedCostTotal)}
               </TableCell>
               <TableCell className="text-right font-medium">
                 {formatBDT(row.grossProfit)}

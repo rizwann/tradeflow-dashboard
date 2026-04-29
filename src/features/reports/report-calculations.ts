@@ -1,20 +1,20 @@
 export type ProductProfitInput = {
   productId: string
   productName: string
-  purchasePriceBDT: number
+  landedCostPerUnit: number
   quantitySold: number
   revenue: number
 }
 
 export function calculateProductProfit(rows: ProductProfitInput[]) {
   return rows.map((row) => {
-    const productCost = row.purchasePriceBDT * row.quantitySold
-    const grossProfit = row.revenue - productCost
+    const landedCostTotal = row.landedCostPerUnit * row.quantitySold
+    const grossProfit = row.revenue - landedCostTotal
     const margin = row.revenue === 0 ? 0 : (grossProfit / row.revenue) * 100
 
     return {
       ...row,
-      productCost,
+      landedCostTotal,
       grossProfit,
       margin,
     }
