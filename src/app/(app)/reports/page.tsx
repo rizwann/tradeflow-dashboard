@@ -1,7 +1,7 @@
 import { MetricCard } from "@/components/shared/metric-card"
 import { createClient } from "@/lib/supabase/server"
-import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
+import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { ShipmentProfitTable } from "@/features/reports/shipment-profit-table"
 import { calculateProductProfit } from "@/features/reports/report-calculations"
 
@@ -13,7 +13,6 @@ type SaleRow = {
   sale_date: string
   products: {
     name: string
-    purchase_price_bdt: number
   } | null
 }
 
@@ -23,23 +22,25 @@ type ExpenseRow = {
   date: string
 }
 
-type ShipmentItemRow = {
-  product_id: string
-  landed_cost_per_unit: number
-  quantity: number
-}
-
 type ShipmentProfitSourceRow = {
   id: string
   shipment_code: string
   shipment_items: {
     product_id: string
     quantity: number
-    landed_cost_per_unit: number
-    products: {
-      purchase_price_bdt: number
-    } | null
   }[]
+}
+
+type SaleBatchConsumptionRow = {
+  sale_id: string
+  product_id: string
+  quantity: number
+  total_cost: number
+  total_revenue: number
+  gross_profit: number
+  inventory_batches: {
+    shipment_id: string | null
+  } | null
 }
 
 function formatBDT(value: number) {
@@ -53,46 +54,37 @@ function getMonthKey(date: string) {
   })
 }
 
-function getAverageShipmentCostPerUnit(
-  shipmentItems: ShipmentItemRow[],
-  productId: string,
-) {
-  const items = shipmentItems.filter((item) => item.product_id === productId)
-
-  if (items.length === 0) return 0
-
-  const totalAllocatedCost = items.reduce((sum, item) => {
-    return sum + Number(item.landed_cost_per_unit) * item.quantity
-  }, 0)
-
-  const totalQuantity = items.reduce((sum, item) => {
-    return sum + item.quantity
-  }, 0)
-
-  if (totalQuantity === 0) return 0
-
-  return totalAllocatedCost / totalQuantity
-}
-
 export default async function ReportsPage() {
   const supabase = await createClient()
 
   const { data: sales, error: salesError } = await supabase
     .from("sales")
     .select(
-      "product_id, quantity, unit_selling_price_bdt, discount, sale_date, products(name, purchase_price_bdt)",
+      "product_id, quantity, unit_selling_price_bdt, discount, sale_date, products(name)",
     )
     .returns<SaleRow[]>()
+
+  const { data: saleBatchConsumptions, error: saleBatchError } = await supabase
+    .from("sale_batch_consumptions")
+    .select(
+      `
+      sale_id,
+      product_id,
+      quantity,
+      total_cost,
+      total_revenue,
+      gross_profit,
+      inventory_batches (
+        shipment_id
+      )
+    `,
+    )
+    .returns<SaleBatchConsumptionRow[]>()
 
   const { data: expenses, error: expensesError } = await supabase
     .from("expenses")
     .select("amount, currency, date")
     .returns<ExpenseRow[]>()
-
-  const { data: shipmentItems, error: shipmentItemsError } = await supabase
-    .from("shipment_items")
-    .select("product_id, landed_cost_per_unit, quantity")
-    .returns<ShipmentItemRow[]>()
 
   const { data: shipmentProfitSource, error: shipmentProfitError } =
     await supabase
@@ -103,22 +95,13 @@ export default async function ReportsPage() {
         shipment_code,
         shipment_items (
           product_id,
-          quantity,
-          landed_cost_per_unit,
-          products (
-            purchase_price_bdt
-          )
+          quantity
         )
       `,
       )
       .returns<ShipmentProfitSourceRow[]>()
 
-  if (
-    salesError ||
-    expensesError ||
-    shipmentItemsError ||
-    shipmentProfitError
-  ) {
+  if (salesError || saleBatchError || expensesError || shipmentProfitError) {
     return (
       <div className="rounded-xl border bg-background p-6">
         <h1 className="text-xl font-semibold">Could not load reports</h1>
@@ -129,14 +112,24 @@ export default async function ReportsPage() {
     )
   }
 
+  const fifoCostByProduct = new Map<string, number>()
+
+  for (const consumption of saleBatchConsumptions ?? []) {
+    fifoCostByProduct.set(
+      consumption.product_id,
+      (fifoCostByProduct.get(consumption.product_id) ?? 0) +
+        Number(consumption.total_cost),
+    )
+  }
+
   const productMap = new Map<
     string,
     {
       productId: string
       productName: string
-      landedCostPerUnit: number
       quantitySold: number
       revenue: number
+      fifoCost: number
     }
   >()
 
@@ -144,21 +137,12 @@ export default async function ReportsPage() {
     const revenue =
       sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
 
-    const purchasePriceBDT = Number(sale.products?.purchase_price_bdt ?? 0)
-
-    const allocatedShipmentCostPerUnit = getAverageShipmentCostPerUnit(
-      shipmentItems ?? [],
-      sale.product_id,
-    )
-
-    const landedCostPerUnit = purchasePriceBDT + allocatedShipmentCostPerUnit
-
     const existing = productMap.get(sale.product_id) ?? {
       productId: sale.product_id,
       productName: sale.products?.name ?? "Unknown product",
-      landedCostPerUnit,
       quantitySold: 0,
       revenue: 0,
+      fifoCost: fifoCostByProduct.get(sale.product_id) ?? 0,
     }
 
     existing.quantitySold += sale.quantity
@@ -171,58 +155,48 @@ export default async function ReportsPage() {
     Array.from(productMap.values()),
   ).sort((a, b) => b.grossProfit - a.grossProfit)
 
-  const salesByProduct = new Map<
+  const shipmentProfitMap = new Map<
     string,
     {
-      quantitySold: number
+      shipmentId: string
+      landedCost: number
       revenue: number
+      grossProfit: number
     }
   >()
 
-  for (const sale of sales ?? []) {
-    const revenue =
-      sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
+  for (const consumption of saleBatchConsumptions ?? []) {
+    const shipmentId = consumption.inventory_batches?.shipment_id
 
-    const existing = salesByProduct.get(sale.product_id) ?? {
-      quantitySold: 0,
+    if (!shipmentId) continue
+
+    const existing = shipmentProfitMap.get(shipmentId) ?? {
+      shipmentId,
+      landedCost: 0,
       revenue: 0,
+      grossProfit: 0,
     }
 
-    existing.quantitySold += sale.quantity
-    existing.revenue += revenue
+    existing.landedCost += Number(consumption.total_cost)
+    existing.revenue += Number(consumption.total_revenue)
+    existing.grossProfit += Number(consumption.gross_profit)
 
-    salesByProduct.set(sale.product_id, existing)
+    shipmentProfitMap.set(shipmentId, existing)
   }
 
   const shipmentProfitRows = (shipmentProfitSource ?? [])
     .map((shipment) => {
-      let totalQuantity = 0
-      let landedCost = 0
-      let estimatedRevenue = 0
+      const totalQuantity = shipment.shipment_items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      )
 
-      for (const item of shipment.shipment_items ?? []) {
-        const purchasePriceBDT = Number(item.products?.purchase_price_bdt ?? 0)
+      const shipmentProfit = shipmentProfitMap.get(shipment.id)
 
-        const fullLandedCostPerUnit =
-          purchasePriceBDT + Number(item.landed_cost_per_unit ?? 0)
+      const landedCost = shipmentProfit?.landedCost ?? 0
+      const estimatedRevenue = shipmentProfit?.revenue ?? 0
+      const grossProfit = shipmentProfit?.grossProfit ?? 0
 
-        const itemLandedCost = fullLandedCostPerUnit * item.quantity
-
-        const productSales = salesByProduct.get(item.product_id)
-
-        const averageRevenuePerUnit =
-          productSales && productSales.quantitySold > 0
-            ? productSales.revenue / productSales.quantitySold
-            : 0
-
-        const estimatedItemRevenue = averageRevenuePerUnit * item.quantity
-
-        totalQuantity += item.quantity
-        landedCost += itemLandedCost
-        estimatedRevenue += estimatedItemRevenue
-      }
-
-      const grossProfit = estimatedRevenue - landedCost
       const margin =
         estimatedRevenue === 0 ? 0 : (grossProfit / estimatedRevenue) * 100
 
@@ -271,6 +245,7 @@ export default async function ReportsPage() {
 
   for (const sale of sales ?? []) {
     const month = getMonthKey(sale.sale_date)
+
     const existing = monthlyMap.get(month) ?? {
       month,
       revenue: 0,
@@ -287,6 +262,7 @@ export default async function ReportsPage() {
     if (expense.currency !== "BDT") continue
 
     const month = getMonthKey(expense.date)
+
     const existing = monthlyMap.get(month) ?? {
       month,
       revenue: 0,
@@ -305,7 +281,7 @@ export default async function ReportsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
         <p className="text-muted-foreground">
-          Analyze landed cost, product profitability, and monthly business
+          Analyze FIFO profitability, shipment performance, and monthly business
           trends.
         </p>
       </div>
@@ -317,14 +293,14 @@ export default async function ReportsPage() {
           description="From recorded sales"
         />
         <MetricCard
-          title="Landed Cost"
+          title="FIFO Cost"
           value={formatBDT(totalLandedCost)}
-          description="Purchase + allocated shipment costs"
+          description="Actual consumed batch cost"
         />
         <MetricCard
           title="Gross Profit"
           value={formatBDT(totalGrossProfit)}
-          description="Revenue minus landed cost"
+          description="Revenue minus FIFO cost"
         />
         <MetricCard
           title="Net Profit"
@@ -346,11 +322,9 @@ export default async function ReportsPage() {
       </div>
 
       <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-        Business note: product profitability uses average allocated
-        shipment/customs cost per product. Shipment profitability is estimated
-        using average product revenue because sales are not yet linked to
-        specific shipment batches. For stricter accounting, a future version
-        should implement FIFO batch costing.
+        Business note: product and shipment profitability now use FIFO batch
+        costs. Shipment revenue is allocated from actual sale revenue to the
+        consumed batches, making shipment profit accurate for recorded sales.
       </div>
     </div>
   )
