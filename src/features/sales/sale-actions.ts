@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { saleSchema } from "./sale-schema"
+import { consumeFifoBatches } from "@/lib/fifo"
 
 export async function createSale(formData: FormData) {
   const supabase = await createClient()
@@ -48,20 +49,24 @@ export async function createSale(formData: FormData) {
     redirect("/sales?error=insufficient-bangladesh-stock")
   }
 
-  const { error: saleError } = await supabase.from("sales").insert({
-    product_id: parsed.data.product_id,
-    quantity: parsed.data.quantity,
-    unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
-    discount: parsed.data.discount,
-    sale_date: parsed.data.sale_date,
-    sold_by: user.id,
-    customer_name: parsed.data.customer_name || null,
-    payment_status: parsed.data.payment_status,
-    notes: parsed.data.notes || null,
-  })
+  const { data: sale, error: saleError } = await supabase
+    .from("sales")
+    .insert({
+      product_id: parsed.data.product_id,
+      quantity: parsed.data.quantity,
+      unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
+      discount: parsed.data.discount,
+      sale_date: parsed.data.sale_date,
+      sold_by: user.id,
+      customer_name: parsed.data.customer_name || null,
+      payment_status: parsed.data.payment_status,
+      notes: parsed.data.notes || null,
+    })
+    .select("id")
+    .single()
 
-  if (saleError) {
-    throw new Error(saleError.message)
+  if (saleError || !sale) {
+    throw new Error(saleError?.message ?? "Could not create sale")
   }
 
   const { error: inventoryUpdateError } = await supabase
@@ -84,6 +89,17 @@ export async function createSale(formData: FormData) {
     reason: "sale",
     created_by: user.id,
   })
+
+  try {
+    await consumeFifoBatches({
+      supabase,
+      saleId: sale.id,
+      productId: parsed.data.product_id,
+      quantity: parsed.data.quantity,
+    })
+  } catch {
+    redirect("/sales?error=insufficient-fifo-batches")
+  }
 
   await supabase.from("audit_logs").insert({
     action: "sale_recorded",
