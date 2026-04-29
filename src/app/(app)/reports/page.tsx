@@ -1,6 +1,4 @@
-import { ErrorState } from "@/components/shared/error-state"
 import { MetricCard } from "@/components/shared/metric-card"
-import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
@@ -24,6 +22,12 @@ type ExpenseRow = {
   date: string
 }
 
+type ShipmentItemRow = {
+  product_id: string
+  landed_cost_per_unit: number
+  quantity: number
+}
+
 function formatBDT(value: number) {
   return `৳${Math.round(value).toLocaleString("en-US")}`
 }
@@ -33,6 +37,27 @@ function getMonthKey(date: string) {
     month: "short",
     year: "2-digit",
   })
+}
+
+function getAverageShipmentCostPerUnit(
+  shipmentItems: ShipmentItemRow[],
+  productId: string,
+) {
+  const items = shipmentItems.filter((item) => item.product_id === productId)
+
+  if (items.length === 0) return 0
+
+  const totalAllocatedCost = items.reduce((sum, item) => {
+    return sum + Number(item.landed_cost_per_unit) * item.quantity
+  }, 0)
+
+  const totalQuantity = items.reduce((sum, item) => {
+    return sum + item.quantity
+  }, 0)
+
+  if (totalQuantity === 0) return 0
+
+  return totalAllocatedCost / totalQuantity
 }
 
 export default async function ReportsPage() {
@@ -50,8 +75,20 @@ export default async function ReportsPage() {
     .select("amount, currency, date")
     .returns<ExpenseRow[]>()
 
-  if (salesError || expensesError) {
-    return <ErrorState title="Could not load reports" />
+  const { data: shipmentItems, error: shipmentItemsError } = await supabase
+    .from("shipment_items")
+    .select("product_id, landed_cost_per_unit, quantity")
+    .returns<ShipmentItemRow[]>()
+
+  if (salesError || expensesError || shipmentItemsError) {
+    return (
+      <div className="rounded-xl border bg-background p-6">
+        <h1 className="text-xl font-semibold">Could not load reports</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Please refresh the page or try again later.
+        </p>
+      </div>
+    )
   }
 
   const productMap = new Map<
@@ -59,7 +96,7 @@ export default async function ReportsPage() {
     {
       productId: string
       productName: string
-      purchasePriceBDT: number
+      landedCostPerUnit: number
       quantitySold: number
       revenue: number
     }
@@ -69,10 +106,19 @@ export default async function ReportsPage() {
     const revenue =
       sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
 
+    const purchasePriceBDT = Number(sale.products?.purchase_price_bdt ?? 0)
+
+    const allocatedShipmentCostPerUnit = getAverageShipmentCostPerUnit(
+      shipmentItems ?? [],
+      sale.product_id,
+    )
+
+    const landedCostPerUnit = purchasePriceBDT + allocatedShipmentCostPerUnit
+
     const existing = productMap.get(sale.product_id) ?? {
       productId: sale.product_id,
       productName: sale.products?.name ?? "Unknown product",
-      purchasePriceBDT: Number(sale.products?.purchase_price_bdt ?? 0),
+      landedCostPerUnit,
       quantitySold: 0,
       revenue: 0,
     }
@@ -92,8 +138,8 @@ export default async function ReportsPage() {
     0,
   )
 
-  const totalProductCost = productProfitRows.reduce(
-    (sum, row) => sum + row.productCost,
+  const totalLandedCost = productProfitRows.reduce(
+    (sum, row) => sum + row.landedCostTotal,
     0,
   )
 
@@ -106,6 +152,8 @@ export default async function ReportsPage() {
     if (expense.currency !== "BDT") return sum
     return sum + expense.amount
   }, 0)
+
+  const netProfit = totalGrossProfit - totalExpenses
 
   const monthlyMap = new Map<
     string,
@@ -149,10 +197,13 @@ export default async function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Reports"
-        description="Analyze profitability, sales performance, and monthly business trends."
-      />
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+        <p className="text-muted-foreground">
+          Analyze landed cost, product profitability, and monthly business
+          trends.
+        </p>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
@@ -161,19 +212,19 @@ export default async function ReportsPage() {
           description="From recorded sales"
         />
         <MetricCard
-          title="Product Cost"
-          value={formatBDT(totalProductCost)}
-          description="Purchase cost estimate"
+          title="Landed Cost"
+          value={formatBDT(totalLandedCost)}
+          description="Purchase + allocated shipment costs"
         />
         <MetricCard
           title="Gross Profit"
           value={formatBDT(totalGrossProfit)}
-          description="Revenue minus product cost"
+          description="Revenue minus landed cost"
         />
         <MetricCard
-          title="BDT Expenses"
-          value={formatBDT(totalExpenses)}
-          description="Operational costs"
+          title="Net Profit"
+          value={formatBDT(netProfit)}
+          description="Gross profit minus BDT expenses"
         />
       </div>
 
@@ -185,9 +236,10 @@ export default async function ReportsPage() {
       </div>
 
       <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-        MVP note: product profit currently uses purchase price as estimated
-        cost. A later version should allocate shipping, customs, and other costs
-        into landed cost per product.
+        Business note: landed cost currently uses average allocated shipment and
+        customs cost per product. This is suitable for operational reporting.
+        For stricter accounting, later we can track sale-to-shipment batch cost
+        using FIFO.
       </div>
     </div>
   )
