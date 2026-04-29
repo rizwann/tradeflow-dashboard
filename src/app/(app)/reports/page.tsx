@@ -2,6 +2,7 @@ import { MetricCard } from "@/components/shared/metric-card"
 import { createClient } from "@/lib/supabase/server"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
+import { ShipmentProfitTable } from "@/features/reports/shipment-profit-table"
 import { calculateProductProfit } from "@/features/reports/report-calculations"
 
 type SaleRow = {
@@ -26,6 +27,19 @@ type ShipmentItemRow = {
   product_id: string
   landed_cost_per_unit: number
   quantity: number
+}
+
+type ShipmentProfitSourceRow = {
+  id: string
+  shipment_code: string
+  shipment_items: {
+    product_id: string
+    quantity: number
+    landed_cost_per_unit: number
+    products: {
+      purchase_price_bdt: number
+    } | null
+  }[]
 }
 
 function formatBDT(value: number) {
@@ -80,7 +94,31 @@ export default async function ReportsPage() {
     .select("product_id, landed_cost_per_unit, quantity")
     .returns<ShipmentItemRow[]>()
 
-  if (salesError || expensesError || shipmentItemsError) {
+  const { data: shipmentProfitSource, error: shipmentProfitError } =
+    await supabase
+      .from("shipments")
+      .select(
+        `
+        id,
+        shipment_code,
+        shipment_items (
+          product_id,
+          quantity,
+          landed_cost_per_unit,
+          products (
+            purchase_price_bdt
+          )
+        )
+      `,
+      )
+      .returns<ShipmentProfitSourceRow[]>()
+
+  if (
+    salesError ||
+    expensesError ||
+    shipmentItemsError ||
+    shipmentProfitError
+  ) {
     return (
       <div className="rounded-xl border bg-background p-6">
         <h1 className="text-xl font-semibold">Could not load reports</h1>
@@ -132,6 +170,73 @@ export default async function ReportsPage() {
   const productProfitRows = calculateProductProfit(
     Array.from(productMap.values()),
   ).sort((a, b) => b.grossProfit - a.grossProfit)
+
+  const salesByProduct = new Map<
+    string,
+    {
+      quantitySold: number
+      revenue: number
+    }
+  >()
+
+  for (const sale of sales ?? []) {
+    const revenue =
+      sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
+
+    const existing = salesByProduct.get(sale.product_id) ?? {
+      quantitySold: 0,
+      revenue: 0,
+    }
+
+    existing.quantitySold += sale.quantity
+    existing.revenue += revenue
+
+    salesByProduct.set(sale.product_id, existing)
+  }
+
+  const shipmentProfitRows = (shipmentProfitSource ?? [])
+    .map((shipment) => {
+      let totalQuantity = 0
+      let landedCost = 0
+      let estimatedRevenue = 0
+
+      for (const item of shipment.shipment_items ?? []) {
+        const purchasePriceBDT = Number(item.products?.purchase_price_bdt ?? 0)
+
+        const fullLandedCostPerUnit =
+          purchasePriceBDT + Number(item.landed_cost_per_unit ?? 0)
+
+        const itemLandedCost = fullLandedCostPerUnit * item.quantity
+
+        const productSales = salesByProduct.get(item.product_id)
+
+        const averageRevenuePerUnit =
+          productSales && productSales.quantitySold > 0
+            ? productSales.revenue / productSales.quantitySold
+            : 0
+
+        const estimatedItemRevenue = averageRevenuePerUnit * item.quantity
+
+        totalQuantity += item.quantity
+        landedCost += itemLandedCost
+        estimatedRevenue += estimatedItemRevenue
+      }
+
+      const grossProfit = estimatedRevenue - landedCost
+      const margin =
+        estimatedRevenue === 0 ? 0 : (grossProfit / estimatedRevenue) * 100
+
+      return {
+        shipmentId: shipment.id,
+        shipmentCode: shipment.shipment_code,
+        totalQuantity,
+        estimatedRevenue,
+        landedCost,
+        grossProfit,
+        margin,
+      }
+    })
+    .sort((a, b) => b.grossProfit - a.grossProfit)
 
   const totalRevenue = productProfitRows.reduce(
     (sum, row) => sum + row.revenue,
@@ -235,11 +340,17 @@ export default async function ReportsPage() {
         <ProductProfitTable rows={productProfitRows} />
       </div>
 
+      <div>
+        <h2 className="mb-3 text-xl font-semibold">Profit by shipment</h2>
+        <ShipmentProfitTable rows={shipmentProfitRows} />
+      </div>
+
       <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-        Business note: landed cost currently uses average allocated shipment and
-        customs cost per product. This is suitable for operational reporting.
-        For stricter accounting, later we can track sale-to-shipment batch cost
-        using FIFO.
+        Business note: product profitability uses average allocated
+        shipment/customs cost per product. Shipment profitability is estimated
+        using average product revenue because sales are not yet linked to
+        specific shipment batches. For stricter accounting, a future version
+        should implement FIFO batch costing.
       </div>
     </div>
   )
