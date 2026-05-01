@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { saleSchema } from "./sale-schema"
-import { consumeFifoBatches } from "@/lib/fifo"
 
 export async function createSale(formData: FormData) {
   const supabase = await createClient()
@@ -34,94 +33,40 @@ export async function createSale(formData: FormData) {
     throw new Error("Unauthorized")
   }
 
-  const { data: inventory, error: inventoryError } = await supabase
-    .from("inventory")
-    .select("id, quantity")
-    .eq("product_id", parsed.data.product_id)
-    .eq("location", "bangladesh")
-    .single()
-
-  if (inventoryError || !inventory) {
-    redirect("/sales?error=no-bangladesh-stock")
-  }
-
-  if (inventory.quantity < parsed.data.quantity) {
-    redirect("/sales?error=insufficient-bangladesh-stock")
-  }
-
-  const { data: sale, error: saleError } = await supabase
-    .from("sales")
-    .insert({
-      product_id: parsed.data.product_id,
-      quantity: parsed.data.quantity,
-      unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
-      discount: parsed.data.discount,
-      sale_date: parsed.data.sale_date,
-      sold_by: user.id,
-      customer_name: parsed.data.customer_name || null,
-      payment_status: parsed.data.payment_status,
-      notes: parsed.data.notes || null,
-    })
-    .select("id")
-    .single()
-
-  if (saleError || !sale) {
-    throw new Error(saleError?.message ?? "Could not create sale")
-  }
-
-  const { error: inventoryUpdateError } = await supabase
-    .from("inventory")
-    .update({
-      quantity: inventory.quantity - parsed.data.quantity,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", inventory.id)
-
-  if (inventoryUpdateError) {
-    throw new Error(inventoryUpdateError.message)
-  }
-
-  await supabase.from("inventory_movements").insert({
-    product_id: parsed.data.product_id,
-    from_location: "bangladesh",
-    to_location: null,
-    quantity: parsed.data.quantity,
-    reason: "sale",
-    created_by: user.id,
+  const { error } = await supabase.rpc("record_sale_with_fifo", {
+    p_product_id: parsed.data.product_id,
+    p_quantity: parsed.data.quantity,
+    p_unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
+    p_discount: parsed.data.discount,
+    p_sale_date: parsed.data.sale_date,
+    p_sold_by: user.id,
+    p_customer_name: parsed.data.customer_name ?? "",
+    p_payment_status: parsed.data.payment_status,
+    p_notes: parsed.data.notes ?? "",
   })
 
-  try {
-    const totalSaleRevenue =
-      parsed.data.quantity * parsed.data.unit_selling_price_bdt -
-      Number(parsed.data.discount ?? 0)
+  if (error) {
+    const message = error.message.toLowerCase()
 
-    const revenuePerUnit = totalSaleRevenue / parsed.data.quantity
+    if (message.includes("no bangladesh inventory")) {
+      redirect("/sales?error=no-bangladesh-stock")
+    }
 
-    await consumeFifoBatches({
-      supabase,
-      saleId: sale.id,
-      productId: parsed.data.product_id,
-      quantity: parsed.data.quantity,
-      revenuePerUnit,
-    })
-  } catch {
-    redirect("/sales?error=insufficient-fifo-batches")
+    if (message.includes("not enough bangladesh inventory")) {
+      redirect("/sales?error=insufficient-bangladesh-stock")
+    }
+
+    if (message.includes("not enough fifo batch inventory")) {
+      redirect("/sales?error=insufficient-fifo-batches")
+    }
+
+    throw new Error(error.message)
   }
-
-  await supabase.from("audit_logs").insert({
-    action: "sale_recorded",
-    entity_type: "sale",
-    user_id: user.id,
-    metadata: {
-      product_id: parsed.data.product_id,
-      quantity: parsed.data.quantity,
-      unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
-    },
-  })
 
   revalidatePath("/sales")
   revalidatePath("/inventory")
   revalidatePath("/dashboard")
+  revalidatePath("/reports")
 
   redirect("/sales")
 }

@@ -45,6 +45,29 @@ export default async function ShipmentsPage({
           shipment quantity or record more purchases first.
         </div>
       ) : null}
+      {params.error === "shipment-not-found" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Shipment could not be found.
+        </div>
+      ) : null}
+
+      {params.error === "invalid-shipment-status" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Only sent shipments can be marked as received.
+        </div>
+      ) : null}
+
+      {params.error === "duplicate-batches" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          FIFO inventory batches already exist for this shipment.
+        </div>
+      ) : null}
+
+      {params.error === "insufficient-transit-stock" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Not enough in-transit inventory to receive this shipment.
+        </div>
+      ) : null}
       <div className="rounded-xl border bg-background p-4">
         {data?.length ? (
           <div className="space-y-3">
