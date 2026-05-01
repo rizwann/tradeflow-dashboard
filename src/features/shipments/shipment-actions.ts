@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server"
 import { shipmentSchema } from "./shipment-schema"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { moveInventory } from "@/lib/inventory"
 
 export async function createShipment(formData: FormData) {
   const supabase = await createClient()
@@ -110,69 +109,41 @@ export async function markShipmentAsSent(shipmentId: string) {
     throw new Error("Only admin can send shipments")
   }
 
-  const { data: shipment, error: shipmentError } = await supabase
-    .from("shipments")
-    .select("id, status")
-    .eq("id", shipmentId)
-    .single()
-
-  if (shipmentError || !shipment) {
-    throw new Error("Shipment not found")
-  }
-
-  if (shipment.status !== "draft") {
-    throw new Error("Only draft shipments can be marked as sent")
-  }
-
-  const { data: items, error: itemsError } = await supabase
-    .from("shipment_items")
-    .select("product_id, quantity")
-    .eq("shipment_id", shipmentId)
-
-  if (itemsError || !items || items.length === 0) {
-    throw new Error("Shipment has no items")
-  }
-
-  try {
-    for (const item of items) {
-      await moveInventory({
-        supabase,
-        productId: item.product_id,
-        fromLocation: "germany",
-        toLocation: "in_transit",
-        quantity: item.quantity,
-        userId: user.id,
-        reason: "shipment_sent",
-      })
-    }
-  } catch {
-    redirect("/shipments?error=insufficient-stock")
-  }
-
-  const { error: updateError } = await supabase
-    .from("shipments")
-    .update({
-      status: "sent",
-      sent_date: new Date().toISOString().slice(0, 10),
-    })
-    .eq("id", shipmentId)
-
-  if (updateError) {
-    throw new Error(updateError.message)
-  }
-
-  await supabase.from("audit_logs").insert({
-    action: "shipment_status_changed",
-    entity_type: "shipment",
-    entity_id: shipmentId,
-    user_id: user.id,
-    metadata: {
-      from_status: "draft",
-      to_status: "sent",
-    },
+  const { error } = await supabase.rpc("send_shipment_atomically", {
+    p_shipment_id: shipmentId,
+    p_user_id: user.id,
   })
 
+  if (error) {
+    const message = error.message.toLowerCase()
+
+    if (message.includes("shipment not found")) {
+      redirect("/shipments?error=shipment-not-found")
+    }
+
+    if (message.includes("only draft shipments")) {
+      redirect("/shipments?error=invalid-send-status")
+    }
+
+    if (message.includes("shipment has no items")) {
+      redirect("/shipments?error=no-shipment-items")
+    }
+
+    if (
+      message.includes("not enough germany inventory") ||
+      message.includes("no germany inventory")
+    ) {
+      redirect("/shipments?error=insufficient-stock")
+    }
+
+    throw new Error(error.message)
+  }
+
   revalidatePath("/shipments")
+  revalidatePath("/inventory")
+  revalidatePath("/dashboard")
+  revalidatePath("/reports")
+  redirect("/shipments")
 }
 
 type ShipmentItemForBatch = {

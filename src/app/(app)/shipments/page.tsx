@@ -68,6 +68,17 @@ export default async function ShipmentsPage({
           Not enough in-transit inventory to receive this shipment.
         </div>
       ) : null}
+      {params.error === "invalid-send-status" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          Only draft shipments can be marked as sent.
+        </div>
+      ) : null}
+
+      {params.error === "no-shipment-items" ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          This shipment has no items. Add shipment items before sending.
+        </div>
+      ) : null}
       <div className="rounded-xl border bg-background p-4">
         {data?.length ? (
           <div className="space-y-3">
