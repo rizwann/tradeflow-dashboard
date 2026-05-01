@@ -198,120 +198,36 @@ export async function markShipmentAsReceived(shipmentId: string) {
     throw new Error("Unauthorized")
   }
 
-  const { data: shipment, error: shipmentError } = await supabase
-    .from("shipments")
-    .select("id, status")
-    .eq("id", shipmentId)
-    .single()
+  const { error } = await supabase.rpc("receive_shipment_with_batches", {
+    p_shipment_id: shipmentId,
+    p_user_id: user.id,
+  })
 
-  if (shipmentError || !shipment) {
-    throw new Error("Shipment not found")
-  }
+  if (error) {
+    const message = error.message.toLowerCase()
 
-  if (shipment.status !== "sent") {
-    throw new Error("Only sent shipments can be marked as received")
-  }
-
-const { data: items, error: itemsError } = await supabase
-  .from("shipment_items")
-  .select(
-    `
-    id,
-    product_id,
-    quantity,
-    allocated_shipping_cost,
-    allocated_customs_cost,
-    landed_cost_per_unit,
-    products (
-      purchase_price_bdt
-    )
-  `,
-  )
-  .eq("shipment_id", shipmentId)
-  .returns<ShipmentItemForBatch[]>()
-
-  if (itemsError || !items || items.length === 0) {
-    throw new Error("Shipment has no items")
-  }
-
-  for (const item of items) {
-    await moveInventory({
-      supabase,
-      productId: item.product_id,
-      fromLocation: "in_transit",
-      toLocation: "bangladesh",
-      quantity: item.quantity,
-      userId: user.id,
-      reason: "shipment_received",
-    })
-  }
-  const { data: existingBatches } = await supabase
-    .from("inventory_batches")
-    .select("id")
-    .eq("shipment_id", shipmentId)
-    .limit(1)
-
-  if (existingBatches && existingBatches.length > 0) {
-    throw new Error("Inventory batches already exist for this shipment")
-  }
-  const batches = items.map((item) => {
-    const purchasePriceBDT = Number(item.products?.purchase_price_bdt ?? 0)
-
-    const allocatedShippingCostPerUnit =
-      Number(item.allocated_shipping_cost ?? 0) / item.quantity
-
-    const allocatedCustomsCostPerUnit =
-      Number(item.allocated_customs_cost ?? 0) / item.quantity
-
-    const shipmentCostPerUnit = Number(item.landed_cost_per_unit ?? 0)
-
-    const fullLandedCostPerUnit = purchasePriceBDT + shipmentCostPerUnit
-
-    return {
-      product_id: item.product_id,
-      shipment_id: shipmentId,
-      shipment_item_id: item.id,
-      original_quantity: item.quantity,
-      remaining_quantity: item.quantity,
-      purchase_price_bdt: purchasePriceBDT,
-      allocated_shipping_cost_per_unit: allocatedShippingCostPerUnit,
-      allocated_customs_cost_per_unit: allocatedCustomsCostPerUnit,
-      landed_cost_per_unit: fullLandedCostPerUnit,
-      received_at: new Date().toISOString(),
+    if (message.includes("shipment not found")) {
+      redirect("/shipments?error=shipment-not-found")
     }
-  })
 
-  const { error: batchError } = await supabase
-    .from("inventory_batches")
-    .insert(batches)
+    if (message.includes("only sent shipments")) {
+      redirect("/shipments?error=invalid-shipment-status")
+    }
 
-  if (batchError) {
-    throw new Error(batchError.message)
+    if (message.includes("inventory batches already exist")) {
+      redirect("/shipments?error=duplicate-batches")
+    }
+
+    if (message.includes("not enough in-transit inventory")) {
+      redirect("/shipments?error=insufficient-transit-stock")
+    }
+
+    throw new Error(error.message)
   }
-
-  const { error: updateError } = await supabase
-    .from("shipments")
-    .update({
-      status: "received",
-      received_date: new Date().toISOString().slice(0, 10),
-    })
-    .eq("id", shipmentId)
-
-  if (updateError) {
-    throw new Error(updateError.message)
-  }
-
-  await supabase.from("audit_logs").insert({
-    action: "shipment_status_changed",
-    entity_type: "shipment",
-    entity_id: shipmentId,
-    user_id: user.id,
-    metadata: {
-      from_status: "sent",
-      to_status: "received",
-    },
-  })
 
   revalidatePath("/shipments")
   revalidatePath("/inventory")
+  revalidatePath("/reports")
+  revalidatePath("/dashboard")
+  redirect("/shipments")
 }
