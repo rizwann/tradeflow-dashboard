@@ -1,3 +1,5 @@
+"use client"
+
 import { markShipmentAsReceived, markShipmentAsSent } from "./shipment-actions"
 import { Button } from "@/components/ui/button"
 

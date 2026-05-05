@@ -1,15 +1,28 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
-import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
-import { ShipmentStatusActions } from "@/features/shipments/shipment-status-actions"
+import {
+  ShipmentTable,
+  type ShipmentStatus,
+  type ShipmentTableRow,
+} from "@/features/shipments/shipment-table"
 
 type ShipmentsPageProps = {
   searchParams: Promise<{
     error?: string
   }>
+}
+
+type ShipmentRecord = {
+  id: string
+  shipment_code: string
+  method: "luggage" | "courier" | "cargo"
+  status: ShipmentStatus
+  shipping_cost: number
+  customs_cost: number
+  created_at: string
 }
 
 export default async function ShipmentsPage({
@@ -24,6 +37,18 @@ export default async function ShipmentsPage({
       "id, shipment_code, method, status, shipping_cost, customs_cost, created_at",
     )
     .order("created_at", { ascending: false })
+    .returns<ShipmentRecord[]>()
+
+  const shipments: ShipmentTableRow[] =
+    data?.map((shipment) => ({
+      id: shipment.id,
+      shipmentCode: shipment.shipment_code,
+      method: shipment.method,
+      status: shipment.status,
+      shippingCost: shipment.shipping_cost,
+      customsCost: shipment.customs_cost,
+      createdDate: shipment.created_at,
+    })) ?? []
 
   return (
     <div className="space-y-6">
@@ -79,41 +104,8 @@ export default async function ShipmentsPage({
           This shipment has no items. Add shipment items before sending.
         </div>
       ) : null}
-      <div className="rounded-xl border bg-background p-4">
-        {data?.length ? (
-          <div className="space-y-3">
-            {data.map((shipment) => (
-              <div
-                key={shipment.id}
-                className="flex flex-col justify-between gap-3 rounded-lg border p-4 sm:flex-row sm:items-center"
-              >
-                <div>
-                  <p className="font-medium">{shipment.shipment_code}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {shipment.method} · {shipment.status} · Shipping ৳
-                    {shipment.shipping_cost} · Customs ৳{shipment.customs_cost}
-                  </p>
-                </div>
 
-                <ShipmentStatusActions
-                  shipmentId={shipment.id}
-                  status={shipment.status}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="No shipments yet"
-            description="Create your first shipment to start moving inventory."
-            action={
-              <Button asChild>
-                <Link href="/shipments/new">Create shipment</Link>
-              </Button>
-            }
-          />
-        )}
-      </div>
+      <ShipmentTable shipments={shipments} />
     </div>
   )
 }
