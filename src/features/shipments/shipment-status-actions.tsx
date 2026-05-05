@@ -22,7 +22,7 @@ export function ShipmentStatusActions({
   if (status === "draft") {
     return (
       <form action={markShipmentAsSent.bind(null, shipmentId)}>
-        <Button size="sm" variant="outline">
+        <Button variant="outline" className="h-9 px-3 text-sm">
           Mark as sent
         </Button>
       </form>
@@ -32,7 +32,7 @@ export function ShipmentStatusActions({
   if (status === "sent") {
     return (
       <form action={markShipmentAsReceived.bind(null, shipmentId)}>
-        <Button size="sm" variant="outline">
+        <Button variant="outline" className="h-9 px-3 text-sm">
           Mark as received
         </Button>
       </form>

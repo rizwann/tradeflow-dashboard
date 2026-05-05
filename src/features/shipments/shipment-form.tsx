@@ -155,11 +155,14 @@ export function ShipmentForm({ products }: { products: Product[] }) {
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-sm font-medium">Items</p>
 
         {fields.map((field, index) => (
-          <div key={field.id} className="grid gap-4 md:grid-cols-2">
+          <div
+            key={field.id}
+            className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:border-0 md:p-0"
+          >
             <FieldErrorSelect
               label={`Product ${index + 1}`}
               error={errors.items?.[index]?.product_id?.message}
@@ -184,16 +187,23 @@ export function ShipmentForm({ products }: { products: Product[] }) {
           </div>
         ))}
 
-        <Button type="button" onClick={addItem} className="mt-2">
+        <Button
+          type="button"
+          onClick={addItem}
+          variant="outline"
+          className="mt-1 w-full sm:w-auto"
+        >
           Add item
         </Button>
 
         {errors.items?.message ? (
-          <p className="text-sm text-destructive">{errors.items.message}</p>
+          <p className="break-words text-sm text-destructive">
+            {errors.items.message}
+          </p>
         ) : null}
       </div>
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Creating shipment..." : "Create shipment"}
       </Button>
     </form>

@@ -38,8 +38,8 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
   }
 
   return (
-    <div className="rounded-xl border bg-background shadow-sm">
-      <Table>
+    <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+      <Table className="min-w-[42rem]">
         <TableHeader>
           <TableRow>
             <TableHead>Product</TableHead>
@@ -54,7 +54,9 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.productId}>
-              <TableCell className="font-medium">{row.productName}</TableCell>
+              <TableCell className="max-w-48 font-medium whitespace-normal">
+                {row.productName}
+              </TableCell>
               <TableCell className="text-right">{row.quantitySold}</TableCell>
               <TableCell className="text-right">
                 {formatBDT(row.revenue)}

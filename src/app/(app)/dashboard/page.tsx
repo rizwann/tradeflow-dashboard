@@ -172,7 +172,7 @@ function DashboardTableCard(props: {
       </CardHeader>
       <CardContent>
         {rows ? (
-          <Table>
+          <Table className="min-w-[32rem]">
             <TableHeader>
               <TableRow>
                 {columns.map((column) => (
@@ -471,13 +471,13 @@ export default async function DashboardPage() {
     .map(({ sortKey: _sortKey, ...entry }) => entry)
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-8">
       <PageHeader
         title="Dashboard"
         description="Business-ready overview of revenue, FIFO profitability, inventory health, and product performance."
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         <MetricCard
           title="Total Revenue"
           value={formatBDT(totalRevenue)}

@@ -1,4 +1,5 @@
 import { MetricCard } from "@/components/shared/metric-card"
+import { PageHeader } from "@/components/shared/page-header"
 import { createClient } from "@/lib/supabase/server"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
@@ -277,14 +278,11 @@ export default async function ReportsPage() {
   const monthlyData = Array.from(monthlyMap.values())
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground">
-          Analyze FIFO profitability, shipment performance, and monthly business
-          trends.
-        </p>
-      </div>
+    <div className="min-w-0 space-y-6">
+      <PageHeader
+        title="Reports"
+        description="Analyze FIFO profitability, shipment performance, and monthly business trends."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard

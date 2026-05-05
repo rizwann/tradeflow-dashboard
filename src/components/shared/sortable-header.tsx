@@ -4,6 +4,7 @@ import { ArrowUpDown } from "lucide-react"
 import type { Column } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 type SortableHeaderProps<TData, TValue> = {
   column: Column<TData, TValue>
@@ -19,7 +20,10 @@ export function SortableHeader<TData, TValue>({
   return (
     <Button
       variant="ghost"
-      className={align === "right" ? "ml-auto px-0" : "-ml-4"}
+      className={cn(
+        "h-9 px-2 text-sm sm:h-8",
+        align === "right" ? "ml-auto justify-end" : "-ml-2 sm:-ml-4",
+      )}
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
     >
       {title}

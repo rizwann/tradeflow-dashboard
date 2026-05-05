@@ -151,7 +151,7 @@ export function SaleForm({ products }: { products: Product[] }) {
         {...register("notes")}
       />
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Recording sale..." : "Record sale"}
       </Button>
     </form>

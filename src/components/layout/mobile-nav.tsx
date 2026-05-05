@@ -26,18 +26,22 @@ export function MobileNav({ role }: MobileNavProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="lg:hidden">
+        <Button
+          variant="outline"
+          size="icon-lg"
+          className="h-10 w-10 lg:hidden"
+        >
           <Menu className="h-4 w-4" />
           <span className="sr-only">Open navigation</span>
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-72">
+      <SheetContent side="left" className="w-[85vw] max-w-72">
         <SheetHeader>
           <SheetTitle>TradeFlow</SheetTitle>
         </SheetHeader>
 
-        <nav className="mt-6 space-y-1">
+        <nav className="mt-4 space-y-1 px-2 pb-4">
           {visibleNavItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -47,7 +51,7 @@ export function MobileNav({ role }: MobileNavProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                   isActive && "bg-muted text-foreground",
                 )}
               >
