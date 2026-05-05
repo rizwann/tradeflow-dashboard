@@ -17,17 +17,21 @@ export function SortableHeader<TData, TValue>({
   title,
   align = "left",
 }: SortableHeaderProps<TData, TValue>) {
+  const sortState = column.getIsSorted()
+
   return (
     <Button
+      type="button"
       variant="ghost"
       className={cn(
-        "h-9 px-2 text-sm sm:h-8",
+        "h-9 rounded-lg px-2 text-sm text-muted-foreground hover:text-foreground sm:h-8",
         align === "right" ? "ml-auto justify-end" : "-ml-2 sm:-ml-4",
       )}
+      aria-label={`Sort by ${title}${sortState ? `, currently ${sortState}` : ""}`}
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
     >
       {title}
-      <ArrowUpDown className="ml-2 h-4 w-4" />
+      <ArrowUpDown className="ml-2 h-4 w-4 opacity-70" />
     </Button>
   )
 }

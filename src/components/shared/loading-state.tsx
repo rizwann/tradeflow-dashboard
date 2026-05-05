@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function LoadingState() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" aria-live="polite" aria-busy="true">
       <div className="space-y-3">
         <Skeleton className="h-9 w-56 max-w-full" />
         <Skeleton className="h-4 w-[32rem] max-w-full" />
@@ -12,7 +12,7 @@ export function LoadingState() {
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-xl border bg-background p-4 shadow-sm"
+            className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm"
           >
             <div className="space-y-3">
               <Skeleton className="h-4 w-24" />
@@ -24,7 +24,7 @@ export function LoadingState() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-xl border bg-background p-4 shadow-sm">
+        <div className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm">
           <div className="space-y-4">
             <div className="space-y-2">
               <Skeleton className="h-5 w-40" />
@@ -34,7 +34,7 @@ export function LoadingState() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-background p-4 shadow-sm">
+        <div className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm">
           <div className="space-y-4">
             <div className="space-y-2">
               <Skeleton className="h-5 w-36" />
