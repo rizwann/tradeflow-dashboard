@@ -1,7 +1,10 @@
 import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
 import { PageHeader } from "@/components/shared/page-header"
-import { InventoryTable } from "@/features/inventory/inventory-table"
+import {
+  InventoryTable,
+  type InventoryRow,
+} from "@/features/inventory/inventory-table"
 
 type ProductRow = {
   id: string
@@ -33,7 +36,7 @@ export default async function InventoryPage() {
 
   const inventoryRecords = (inventory ?? []) as InventoryRecord[]
 
-  const rows =
+  const rows: InventoryRow[] =
     ((products ?? []) as ProductRow[]).map((product) => {
       const germany =
         inventoryRecords.find(

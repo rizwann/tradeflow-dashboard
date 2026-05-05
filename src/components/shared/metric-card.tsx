@@ -8,18 +8,18 @@ type MetricCardProps = {
 
 export function MetricCard({ title, value, description }: MetricCardProps) {
   return (
-    <Card>
+    <Card className="border border-border/60 bg-card/95 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+      <CardContent className="space-y-1">
+        <div className="text-2xl font-semibold tracking-tight">{value}</div>
 
         {description ? (
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         ) : null}
       </CardContent>
     </Card>

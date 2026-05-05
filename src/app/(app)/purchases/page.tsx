@@ -4,10 +4,16 @@ import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
+import {
+  PurchaseTable,
+  type PurchaseTableRow,
+} from "@/features/purchases/purchase-table"
 
-type PurchaseRow = {
+type PurchaseRecord = {
   id: string
   quantity: number
+  unit_cost_eur: number
+  exchange_rate: number
   total_cost_bdt: number
   purchase_date: string
   products: {
@@ -21,9 +27,23 @@ export default async function PurchasesPage() {
 
   const { data } = await supabase
     .from("purchases")
-    .select("id, quantity, total_cost_bdt, purchase_date, products(name)")
+    .select(
+      "id, quantity, unit_cost_eur, exchange_rate, total_cost_bdt, purchase_date, products(name)",
+    )
     .order("created_at", { ascending: false })
-    .returns<PurchaseRow[]>()
+    .returns<PurchaseRecord[]>()
+
+  const purchases: PurchaseTableRow[] =
+    data?.map((purchase) => ({
+      id: purchase.id,
+      productName: purchase.products?.name ?? "Unknown",
+      quantity: purchase.quantity,
+      unitCostEur: purchase.unit_cost_eur,
+      exchangeRate: purchase.exchange_rate,
+      totalCostBdt: purchase.total_cost_bdt,
+      purchaseDate: purchase.purchase_date,
+    })) ?? []
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -39,17 +59,7 @@ export default async function PurchasesPage() {
         }
       />
 
-      <div className="rounded-xl border bg-background p-4">
-        {data?.map((p) => {
-          const productName = p.products?.name ?? "Unknown"
-
-          return (
-            <div key={p.id} className="border-b py-2">
-              {productName} — {p.quantity} pcs — ৳{p.total_cost_bdt}
-            </div>
-          )
-        })}
-      </div>
+      <PurchaseTable purchases={purchases} />
     </div>
   )
 }
