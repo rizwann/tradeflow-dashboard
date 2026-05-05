@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 
 type PurchaseRow = {
   id: string
@@ -15,6 +16,7 @@ type PurchaseRow = {
 }
 
 export default async function PurchasesPage() {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { data } = await supabase

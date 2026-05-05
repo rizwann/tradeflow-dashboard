@@ -1,6 +1,9 @@
 import { ProductForm } from "@/features/products/product-form"
+import { requireAdmin } from "@/lib/auth"
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  await requireAdmin()
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>

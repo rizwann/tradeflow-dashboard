@@ -5,8 +5,10 @@ import { purchaseSchema } from "./purchase-schema"
 import { calculatePurchasePriceBDT } from "@/lib/calculations"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { requireAdmin } from "@/lib/auth"
 
 export async function createPurchase(formData: FormData) {
+  const { user } = await requireAdmin()
   const supabase = await createClient()
 
   const raw = {
@@ -24,20 +26,6 @@ export async function createPurchase(formData: FormData) {
     throw new Error("Invalid purchase data")
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Role check
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user?.id)
-    .single()
-
-  if (profile?.role !== "admin") {
-    throw new Error("Only admin can record purchases")
-  }
 
   const totalCostBDT =
     calculatePurchasePriceBDT(
@@ -49,7 +37,7 @@ export async function createPurchase(formData: FormData) {
   const { error: purchaseError } = await supabase.from("purchases").insert({
     ...parsed.data,
     total_cost_bdt: totalCostBDT,
-    bought_by: user?.id,
+    bought_by: user.id,
   })
 
   if (purchaseError) throw new Error(purchaseError.message)
@@ -84,7 +72,7 @@ export async function createPurchase(formData: FormData) {
     to_location: "germany",
     quantity: parsed.data.quantity,
     reason: "purchase",
-    created_by: user?.id,
+    created_by: user.id,
   })
 
   // 4. Audit log
