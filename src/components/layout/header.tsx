@@ -10,18 +10,24 @@ type HeaderProps = {
 
 export function Header({ fullName, role }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur lg:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-40 flex h-16 min-w-0 items-center justify-between gap-3 border-b bg-background/95 px-3 backdrop-blur sm:px-4 lg:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <MobileNav role={role} />
 
-        <div>
-          <p className="text-sm font-medium">{fullName}</p>
-          <p className="text-xs capitalize text-muted-foreground">{role}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">{fullName}</p>
+          <p className="truncate text-xs capitalize text-muted-foreground">
+            {role}
+          </p>
         </div>
       </div>
 
       <form action={logout}>
-        <Button type="submit" variant="outline" size="sm">
+        <Button
+          type="submit"
+          variant="outline"
+          className="h-9 px-3 text-sm sm:h-8 sm:px-2.5 sm:text-[0.8rem]"
+        >
           Logout
         </Button>
       </form>

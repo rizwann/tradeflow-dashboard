@@ -15,7 +15,7 @@ export function Sidebar({ role }: SidebarProps) {
   const visibleNavItems = navItems.filter((item) => item.roles.includes(role))
 
   return (
-    <aside className="hidden min-h-screen w-64 border-r bg-background lg:block">
+    <aside className="hidden min-h-screen w-64 shrink-0 border-r bg-background lg:block">
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/dashboard" className="font-bold">
           TradeFlow

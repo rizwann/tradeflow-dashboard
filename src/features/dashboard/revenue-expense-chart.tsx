@@ -69,49 +69,51 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value: number) => formatBDT(value)} />
-              <Tooltip
-                formatter={(value, name) => [
-                  formatBDT(Number(value ?? 0)),
-                  getSeriesLabel(String(name)),
-                ]}
-              />
-              <Legend formatter={getSeriesLabel} />
-              <Bar
-                dataKey="revenue"
-                name="revenue"
-                fill="hsl(var(--chart-1, 215 90% 55%))"
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey="expenses"
-                name="expenses"
-                fill="hsl(var(--chart-4, 12 76% 61%))"
-                radius={[6, 6, 0, 0]}
-              />
-              <Line
-                type="monotone"
-                dataKey="grossProfit"
-                name="grossProfit"
-                stroke="hsl(var(--chart-2, 160 70% 38%))"
-                strokeWidth={2.5}
-                dot={{ r: 3 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="netProfit"
-                name="netProfit"
-                stroke="hsl(var(--chart-5, 262 75% 55%))"
-                strokeWidth={2.5}
-                dot={{ r: 3 }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+        <div className="overflow-x-auto pb-2">
+          <div className="h-80 min-w-[40rem] sm:h-96 sm:min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis tickFormatter={(value: number) => formatBDT(value)} />
+                <Tooltip
+                  formatter={(value, name) => [
+                    formatBDT(Number(value ?? 0)),
+                    getSeriesLabel(String(name)),
+                  ]}
+                />
+                <Legend formatter={getSeriesLabel} />
+                <Bar
+                  dataKey="revenue"
+                  name="revenue"
+                  fill="hsl(var(--chart-1, 215 90% 55%))"
+                  radius={[6, 6, 0, 0]}
+                />
+                <Bar
+                  dataKey="expenses"
+                  name="expenses"
+                  fill="hsl(var(--chart-4, 12 76% 61%))"
+                  radius={[6, 6, 0, 0]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="grossProfit"
+                  name="grossProfit"
+                  stroke="hsl(var(--chart-2, 160 70% 38%))"
+                  strokeWidth={2.5}
+                  dot={{ r: 3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="netProfit"
+                  name="netProfit"
+                  stroke="hsl(var(--chart-5, 262 75% 55%))"
+                  strokeWidth={2.5}
+                  dot={{ r: 3 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>

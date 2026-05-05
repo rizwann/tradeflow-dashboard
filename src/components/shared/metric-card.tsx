@@ -10,16 +10,20 @@ export function MetricCard({ title, value, description }: MetricCardProps) {
   return (
     <Card className="border border-border/60 bg-card/95 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="min-w-0 text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-1">
-        <div className="text-2xl font-semibold tracking-tight">{value}</div>
+      <CardContent className="min-w-0 space-y-1">
+        <div className="break-all text-xl font-semibold tracking-tight sm:text-2xl">
+          {value}
+        </div>
 
         {description ? (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="break-words text-xs text-muted-foreground">
+            {description}
+          </p>
         ) : null}
       </CardContent>
     </Card>

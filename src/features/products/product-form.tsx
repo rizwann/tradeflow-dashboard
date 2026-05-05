@@ -11,8 +11,7 @@ import { createProduct, type ProductActionState } from "./product-actions"
 import { productSchema, type ProductFormValues } from "./product-schema"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FieldErrorInput } from "@/components/forms/field-error-input"
 
 const initialState: ProductActionState = {
   success: false,
@@ -127,27 +126,9 @@ export function ProductForm() {
         {...register("notes")}
       />
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Saving..." : "Save product"}
       </Button>
     </form>
-  )
-}
-
-type FieldErrorInputProps = React.ComponentProps<typeof Input> & {
-  label: string
-  error?: string
-}
-
-function FieldErrorInput({ label, error, id, ...props }: FieldErrorInputProps) {
-  const inputId =
-    id ?? String(props.name ?? label.toLowerCase().replaceAll(" ", "-"))
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={inputId}>{label}</Label>
-      <Input id={inputId} aria-invalid={Boolean(error)} {...props} />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
   )
 }

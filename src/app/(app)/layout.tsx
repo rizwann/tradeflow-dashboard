@@ -32,14 +32,16 @@ export default async function AppLayout({
   const role = profile.role as UserRole
 
   return (
-    <div className="min-h-screen bg-muted/40">
-      <div className="flex">
+    <div className="min-h-screen overflow-x-hidden bg-muted/40">
+      <div className="flex min-w-0">
         <Sidebar role={role} />
 
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <Header fullName={profile.full_name} role={role} />
 
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-4 lg:px-6 lg:py-6">
+            {children}
+          </main>
         </div>
       </div>
     </div>

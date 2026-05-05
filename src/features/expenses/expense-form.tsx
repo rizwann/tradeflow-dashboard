@@ -150,7 +150,7 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
         {...register("notes")}
       />
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Adding expense..." : "Add expense"}
       </Button>
     </form>
