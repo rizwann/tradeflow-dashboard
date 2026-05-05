@@ -60,6 +60,8 @@ export function DataTable<TData, TValue>({
     return <EmptyState title={emptyTitle} description={emptyDescription} />
   }
 
+  const hasSearchQuery = globalFilter.trim().length > 0
+
   return (
     <div className="space-y-4">
       {searchKey ? (
@@ -108,9 +110,16 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center"
+                  className="h-32 px-4 text-center"
                 >
-                  No matching results.
+                  <div className="space-y-1">
+                    <p className="font-medium">No matching results</p>
+                    <p className="text-sm text-muted-foreground">
+                      {hasSearchQuery
+                        ? "Try a different search term or clear the current filter."
+                        : "There are no rows to display in the current view."}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
