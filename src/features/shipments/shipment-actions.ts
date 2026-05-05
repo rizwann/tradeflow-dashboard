@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { shipmentSchema } from "./shipment-schema"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { requireAdmin } from "@/lib/auth"
 
 export async function createShipment(formData: FormData) {
   const supabase = await createClient()
@@ -89,25 +90,8 @@ export async function createShipment(formData: FormData) {
   redirect("/shipments")
 }
 export async function markShipmentAsSent(shipmentId: string) {
+  const { user } = await requireAdmin()
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error("Unauthorized")
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
-
-  if (profile?.role !== "admin") {
-    throw new Error("Only admin can send shipments")
-  }
 
   const { error } = await supabase.rpc("send_shipment_atomically", {
     p_shipment_id: shipmentId,
@@ -144,18 +128,6 @@ export async function markShipmentAsSent(shipmentId: string) {
   revalidatePath("/dashboard")
   revalidatePath("/reports")
   redirect("/shipments")
-}
-
-type ShipmentItemForBatch = {
-  id: string
-  product_id: string
-  quantity: number
-  allocated_shipping_cost: number
-  allocated_customs_cost: number
-  landed_cost_per_unit: number
-  products: {
-    purchase_price_bdt: number
-  } | null
 }
 
 export async function markShipmentAsReceived(shipmentId: string) {

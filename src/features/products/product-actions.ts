@@ -5,8 +5,10 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { productSchema } from "./product-schema"
 import { calculatePurchasePriceBDT } from "@/lib/calculations"
+import { requireAdmin } from "@/lib/auth"
 
 export async function createProduct(formData: FormData) {
+  const { user } = await requireAdmin()
   const supabase = await createClient()
 
   const rawValues = {
@@ -32,20 +34,6 @@ export async function createProduct(formData: FormData) {
     parsed.data.exchange_rate,
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user?.id)
-    .single()
-
-  if (profile?.role !== "admin") {
-    throw new Error("Only admins can create products")
-  }
-
   const { data: product, error } = await supabase
     .from("products")
     .insert({
@@ -64,7 +52,7 @@ export async function createProduct(formData: FormData) {
     action: "product_added",
     entity_type: "product",
     entity_id: product.id,
-    user_id: user?.id,
+    user_id: user.id,
     metadata: {
       name: parsed.data.name,
       sku: parsed.data.sku,

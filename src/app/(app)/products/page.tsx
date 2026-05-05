@@ -5,8 +5,10 @@ import { PageHeader } from "@/components/shared/page-header"
 import { ProductTable } from "@/features/products/product-table"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 
 export default async function ProductsPage() {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { data: products, error } = await supabase

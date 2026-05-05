@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { PurchaseForm } from "@/features/purchases/purchase-form"
+import { requireAdmin } from "@/lib/auth"
 
 export default async function NewPurchasePage() {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { data: products } = await supabase.from("products").select("id, name")
