@@ -1,89 +1,159 @@
-import { createSale } from "./sale-actions"
+"use client"
+
+import { useEffect } from "react"
+import { useActionState } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import type { z } from "zod"
+
+import { createSale, type SaleActionState } from "./sale-actions"
+import { saleSchema, type SaleFormValues } from "./sale-schema"
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  FieldErrorInput,
+  FieldErrorSelect,
+} from "@/components/forms/field-error-input"
 
 type Product = {
   id: string
   name: string
 }
 
+const initialState: SaleActionState = {
+  success: false,
+  message: "",
+}
+
 export function SaleForm({ products }: { products: Product[] }) {
+  const router = useRouter()
+  const [state, formAction, isPending] = useActionState(createSale, initialState)
+  const {
+    register,
+    trigger,
+    formState: { errors },
+  } = useForm<z.input<typeof saleSchema>, unknown, SaleFormValues>({
+    resolver: zodResolver(saleSchema),
+    defaultValues: {
+      product_id: products[0]?.id ?? "",
+      quantity: 1,
+      unit_selling_price_bdt: 0,
+      discount: 0,
+      sale_date: "",
+      customer_name: "",
+      payment_status: "paid",
+      notes: "",
+    },
+  })
+
+  useEffect(() => {
+    if (!state.message) return
+
+    if (state.success) {
+      toast.success(state.message)
+      router.push("/sales")
+      router.refresh()
+    } else {
+      toast.error(state.message)
+    }
+  }, [router, state])
+
   return (
-    <form action={createSale} className="space-y-6">
-      <div className="space-y-2">
-        <Label>Product</Label>
-        <select
-          name="product_id"
-          required
-          className="w-full rounded-md border bg-background p-2 text-sm"
-        >
-          {products.map((product) => (
-            <option key={product.id} value={product.id}>
-              {product.name}
-            </option>
-          ))}
-        </select>
-      </div>
+    <form
+      action={formAction}
+      className="space-y-6"
+      noValidate
+      onSubmit={async (event) => {
+        const isValid = await trigger()
+
+        if (!isValid) {
+          event.preventDefault()
+        }
+      }}
+    >
+      <FieldErrorSelect
+        label="Product"
+        required
+        error={errors.product_id?.message}
+        {...register("product_id")}
+      >
+        <option value="" disabled>
+          Select a product
+        </option>
+        {products.map((product) => (
+          <option key={product.id} value={product.id}>
+            {product.name}
+          </option>
+        ))}
+      </FieldErrorSelect>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Quantity sold</Label>
-          <Input name="quantity" type="number" min={1} required />
-        </div>
+        <FieldErrorInput
+          label="Quantity sold"
+          type="number"
+          min={1}
+          required
+          error={errors.quantity?.message}
+          {...register("quantity")}
+        />
 
-        <div className="space-y-2">
-          <Label>Unit selling price BDT</Label>
-          <Input
-            name="unit_selling_price_bdt"
-            type="number"
-            step="0.01"
-            min={0}
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Unit selling price BDT"
+          type="number"
+          step="0.01"
+          min={0}
+          required
+          error={errors.unit_selling_price_bdt?.message}
+          {...register("unit_selling_price_bdt")}
+        />
 
-        <div className="space-y-2">
-          <Label>Discount</Label>
-          <Input
-            name="discount"
-            type="number"
-            step="0.01"
-            min={0}
-            defaultValue={0}
-          />
-        </div>
+        <FieldErrorInput
+          label="Discount"
+          type="number"
+          step="0.01"
+          min={0}
+          error={errors.discount?.message}
+          {...register("discount")}
+        />
 
-        <div className="space-y-2">
-          <Label>Sale date</Label>
-          <Input name="sale_date" type="date" required />
-        </div>
+        <FieldErrorInput
+          label="Sale date"
+          type="date"
+          required
+          error={errors.sale_date?.message}
+          {...register("sale_date")}
+        />
 
-        <div className="space-y-2">
-          <Label>Payment status</Label>
-          <select
-            name="payment_status"
-            defaultValue="paid"
-            className="w-full rounded-md border bg-background p-2 text-sm"
-          >
-            <option value="paid">Paid</option>
-            <option value="partial">Partial</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
-        </div>
+        <FieldErrorSelect
+          label="Payment status"
+          error={errors.payment_status?.message}
+          {...register("payment_status")}
+        >
+          <option value="paid">Paid</option>
+          <option value="partial">Partial</option>
+          <option value="unpaid">Unpaid</option>
+        </FieldErrorSelect>
 
-        <div className="space-y-2">
-          <Label>Customer name</Label>
-          <Input name="customer_name" placeholder="Optional" />
-        </div>
+        <FieldErrorInput
+          label="Customer name"
+          placeholder="Optional"
+          error={errors.customer_name?.message}
+          {...register("customer_name")}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label>Notes</Label>
-        <Input name="notes" placeholder="Optional notes" />
-      </div>
+      <FieldErrorInput
+        label="Notes"
+        placeholder="Optional notes"
+        error={errors.notes?.message}
+        {...register("notes")}
+      />
 
-      <Button type="submit">Record sale</Button>
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Recording sale..." : "Record sale"}
+      </Button>
     </form>
   )
 }

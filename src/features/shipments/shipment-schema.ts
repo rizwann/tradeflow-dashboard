@@ -17,6 +17,12 @@ export const shipmentSchema = z.object({
 })
 
 export const shipmentItemSchema = z.object({
-  product_id: z.string().uuid(),
-  quantity: z.coerce.number().min(1),
+  product_id: z.string().uuid("Product is required"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
 })
+
+export const shipmentFormSchema = shipmentSchema.extend({
+  items: z.array(shipmentItemSchema).min(1, "Add at least one shipment item"),
+})
+
+export type ShipmentFormValues = z.infer<typeof shipmentFormSchema>

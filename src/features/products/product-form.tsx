@@ -1,92 +1,153 @@
-import { createProduct } from "./product-actions"
+"use client"
+
+import { useEffect } from "react"
+import { useActionState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+import { createProduct, type ProductActionState } from "./product-actions"
+import { productSchema, type ProductFormValues } from "./product-schema"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const initialState: ProductActionState = {
+  success: false,
+  message: "",
+}
+
 export function ProductForm() {
+  const router = useRouter()
+
+  const [state, formAction, isPending] = useActionState(
+    createProduct,
+    initialState,
+  )
+
+  const {
+    register,
+    formState: { errors },
+  } = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      brand: "",
+      category: "",
+      sku: "",
+      purchase_price_eur: 0,
+      exchange_rate: 130,
+      suggested_selling_price_bdt: 0,
+      image_url: "",
+      notes: "",
+    },
+  })
+
+  useEffect(() => {
+    if (!state.message) return
+
+    if (state.success) {
+      toast.success(state.message)
+      router.push("/products")
+      router.refresh()
+    } else {
+      toast.error(state.message)
+    }
+  }, [state, router])
+
   return (
-    <form action={createProduct} className="space-y-6">
+    <form action={formAction} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="name">Product name</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="Isana Shower Gel"
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Product name"
+          placeholder="Isana Shower Gel"
+          error={errors.name?.message}
+          {...register("name")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="brand">Brand</Label>
-          <Input id="brand" name="brand" placeholder="Isana" required />
-        </div>
+        <FieldErrorInput
+          label="Brand"
+          placeholder="Isana"
+          error={errors.brand?.message}
+          {...register("brand")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            name="category"
-            placeholder="Personal care"
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Category"
+          placeholder="Personal care"
+          error={errors.category?.message}
+          {...register("category")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="sku">SKU</Label>
-          <Input id="sku" name="sku" placeholder="ISANA-SG-001" required />
-        </div>
+        <FieldErrorInput
+          label="SKU"
+          placeholder="ISANA-SG-001"
+          error={errors.sku?.message}
+          {...register("sku")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="purchase_price_eur">Purchase price EUR</Label>
-          <Input
-            id="purchase_price_eur"
-            name="purchase_price_eur"
-            type="number"
-            step="0.01"
-            placeholder="1.49"
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Purchase price EUR"
+          type="number"
+          step="0.01"
+          error={errors.purchase_price_eur?.message}
+          {...register("purchase_price_eur")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="exchange_rate">Exchange rate</Label>
-          <Input
-            id="exchange_rate"
-            name="exchange_rate"
-            type="number"
-            step="0.01"
-            placeholder="130"
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Exchange rate"
+          type="number"
+          step="0.01"
+          error={errors.exchange_rate?.message}
+          {...register("exchange_rate")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="suggested_selling_price_bdt">
-            Suggested selling price BDT
-          </Label>
-          <Input
-            id="suggested_selling_price_bdt"
-            name="suggested_selling_price_bdt"
-            type="number"
-            step="0.01"
-            placeholder="350"
-            required
-          />
-        </div>
+        <FieldErrorInput
+          label="Suggested selling price BDT"
+          type="number"
+          step="0.01"
+          error={errors.suggested_selling_price_bdt?.message}
+          {...register("suggested_selling_price_bdt")}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="image_url">Image URL</Label>
-          <Input id="image_url" name="image_url" placeholder="https://..." />
-        </div>
+        <FieldErrorInput
+          label="Image URL"
+          placeholder="https://..."
+          error={errors.image_url?.message}
+          {...register("image_url")}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Input id="notes" name="notes" placeholder="Optional notes" />
-      </div>
+      <FieldErrorInput
+        label="Notes"
+        placeholder="Optional notes"
+        error={errors.notes?.message}
+        {...register("notes")}
+      />
 
-      <Button type="submit">Save product</Button>
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Saving..." : "Save product"}
+      </Button>
     </form>
+  )
+}
+
+type FieldErrorInputProps = React.ComponentProps<typeof Input> & {
+  label: string
+  error?: string
+}
+
+function FieldErrorInput({ label, error, id, ...props }: FieldErrorInputProps) {
+  const inputId =
+    id ?? String(props.name ?? label.toLowerCase().replaceAll(" ", "-"))
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={inputId}>{label}</Label>
+      <Input id={inputId} aria-invalid={Boolean(error)} {...props} />
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
   )
 }

@@ -1,93 +1,156 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { shipmentSchema } from "./shipment-schema"
+import { shipmentFormSchema } from "./shipment-schema"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/auth"
 
-export async function createShipment(formData: FormData) {
-  const supabase = await createClient()
+export type ShipmentActionState = {
+  success: boolean
+  message: string
+}
 
-  const raw = {
-    shipment_code: formData.get("shipment_code"),
-    carrier_name: formData.get("carrier_name"),
-    method: formData.get("method"),
-    sent_date: formData.get("sent_date"),
-    expected_arrival_date: formData.get("expected_arrival_date"),
-    shipping_cost: formData.get("shipping_cost") || "0",
-    customs_cost: formData.get("customs_cost") || "0",
-    notes: formData.get("notes"),
-  }
+export async function createShipment(
+  _prevState: ShipmentActionState,
+  formData: FormData,
+): Promise<ShipmentActionState> {
+  try {
+    const supabase = await createClient()
 
-  const parsed = shipmentSchema.safeParse(raw)
+    const itemKeys = Array.from(formData.keys()).filter((key) =>
+      key.startsWith("items."),
+    )
+    const itemIndexes = Array.from(
+      new Set(
+        itemKeys
+          .map((key) => key.match(/^items\.(\d+)\./)?.[1])
+          .filter((index): index is string => index !== undefined),
+      ),
+    ).sort((left, right) => Number(left) - Number(right))
 
-  if (!parsed.success) {
-    console.log(parsed.error.flatten())
-    throw new Error("Invalid shipment")
-  }
+    const raw = {
+      shipment_code: formData.get("shipment_code"),
+      carrier_name: formData.get("carrier_name"),
+      method: formData.get("method"),
+      sent_date: formData.get("sent_date"),
+      expected_arrival_date: formData.get("expected_arrival_date"),
+      shipping_cost: formData.get("shipping_cost") || "0",
+      customs_cost: formData.get("customs_cost") || "0",
+      notes: formData.get("notes"),
+      items: itemIndexes.map((index) => ({
+        product_id: formData.get(`items.${index}.product_id`),
+        quantity: formData.get(`items.${index}.quantity`),
+      })),
+    }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    const parsed = shipmentFormSchema.safeParse(raw)
 
-  // create shipment
-  const { data: shipment, error } = await supabase
-    .from("shipments")
-    .insert({
-      ...parsed.data,
-      status: "draft",
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: "Please check the shipment form and try again.",
+      }
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    // create shipment
+    const { data: shipment, error } = await supabase
+      .from("shipments")
+      .insert({
+        shipment_code: parsed.data.shipment_code,
+        carrier_name: parsed.data.carrier_name,
+        method: parsed.data.method,
+        sent_date: parsed.data.sent_date,
+        expected_arrival_date: parsed.data.expected_arrival_date,
+        shipping_cost: parsed.data.shipping_cost,
+        customs_cost: parsed.data.customs_cost,
+        notes: parsed.data.notes,
+        status: "draft",
+      })
+      .select("id")
+      .single()
+
+    if (error) {
+      return {
+        success: false,
+        message: error.message,
+      }
+    }
+
+    // handle items (dynamic)
+    const totalQuantity = parsed.data.items.reduce((sum, item) => {
+      return sum + item.quantity
+    }, 0)
+
+    if (totalQuantity <= 0) {
+      return {
+        success: false,
+        message: "Shipment must have at least one valid item quantity.",
+      }
+    }
+
+    const totalShippingCost = parsed.data.shipping_cost
+    const totalCustomsCost = parsed.data.customs_cost
+
+    const items = parsed.data.items.map((item) => {
+      const quantityRatio = item.quantity / totalQuantity
+
+      const allocatedShippingCost = totalShippingCost * quantityRatio
+      const allocatedCustomsCost = totalCustomsCost * quantityRatio
+      const allocatedTotalCost = allocatedShippingCost + allocatedCustomsCost
+
+      return {
+        shipment_id: shipment.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        allocated_cost: allocatedTotalCost,
+        allocated_shipping_cost: allocatedShippingCost,
+        allocated_customs_cost: allocatedCustomsCost,
+        landed_cost_per_unit: allocatedTotalCost / item.quantity,
+      }
     })
-    .select("id")
-    .single()
 
-  if (error) throw new Error(error.message)
+    const { error: shipmentItemsError } = await supabase
+      .from("shipment_items")
+      .insert(items)
 
-  // handle items (dynamic)
-  const productIds = formData.getAll("product_id")
-  const quantities = formData.getAll("quantity")
+    if (shipmentItemsError) {
+      return {
+        success: false,
+        message: shipmentItemsError.message,
+      }
+    }
 
-  const totalQuantity = quantities.reduce((sum, quantity) => {
-    return sum + Number(quantity)
-  }, 0)
+    const { error: auditError } = await supabase.from("audit_logs").insert({
+      action: "shipment_created",
+      entity_type: "shipment",
+      entity_id: shipment.id,
+      user_id: user?.id,
+    })
 
-  if (totalQuantity <= 0) {
-    throw new Error("Shipment must have at least one valid item quantity")
-  }
+    if (auditError) {
+      return {
+        success: false,
+        message: auditError.message,
+      }
+    }
 
-  const totalShippingCost = parsed.data.shipping_cost
-  const totalCustomsCost = parsed.data.customs_cost
-
-  const items = productIds.map((id, index) => {
-    const quantity = Number(quantities[index])
-    const quantityRatio = quantity / totalQuantity
-
-    const allocatedShippingCost = totalShippingCost * quantityRatio
-    const allocatedCustomsCost = totalCustomsCost * quantityRatio
-    const allocatedTotalCost = allocatedShippingCost + allocatedCustomsCost
+    revalidatePath("/shipments")
 
     return {
-      shipment_id: shipment.id,
-      product_id: String(id),
-      quantity,
-      allocated_cost: allocatedTotalCost,
-      allocated_shipping_cost: allocatedShippingCost,
-      allocated_customs_cost: allocatedCustomsCost,
-      landed_cost_per_unit: allocatedTotalCost / quantity,
+      success: true,
+      message: "Shipment created successfully.",
     }
-  })
-
-  await supabase.from("shipment_items").insert(items)
-
-  await supabase.from("audit_logs").insert({
-    action: "shipment_created",
-    entity_type: "shipment",
-    entity_id: shipment.id,
-    user_id: user?.id,
-  })
-
-  revalidatePath("/shipments")
-  redirect("/shipments")
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to create shipment.",
+    }
+  }
 }
 export async function markShipmentAsSent(shipmentId: string) {
   const { user } = await requireAdmin()

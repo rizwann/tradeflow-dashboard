@@ -12,4 +12,4 @@ export const productSchema = z.object({
   notes: z.string().optional(),
 })
 
-export type ProductFormValues = z.infer<typeof productSchema>
+export type ProductFormValues = z.input<typeof productSchema>

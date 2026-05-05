@@ -1,15 +1,22 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 import { productSchema } from "./product-schema"
 import { calculatePurchasePriceBDT } from "@/lib/calculations"
-import { requireAdmin } from "@/lib/auth"
 
-export async function createProduct(formData: FormData) {
-  const { user } = await requireAdmin()
+export type ProductActionState = {
+  success: boolean
+  message: string
+}
+
+export async function createProduct(
+  _prevState: ProductActionState,
+  formData: FormData,
+): Promise<ProductActionState> {
   const supabase = await createClient()
+  const { user } = await requireAdmin()
 
   const rawValues = {
     name: formData.get("name"),
@@ -26,7 +33,10 @@ export async function createProduct(formData: FormData) {
   const parsed = productSchema.safeParse(rawValues)
 
   if (!parsed.success) {
-    throw new Error("Invalid product data")
+    return {
+      success: false,
+      message: "Please check the product form and try again.",
+    }
   }
 
   const purchasePriceBDT = calculatePurchasePriceBDT(
@@ -45,7 +55,10 @@ export async function createProduct(formData: FormData) {
     .single()
 
   if (error) {
-    throw new Error(error.message)
+    return {
+      success: false,
+      message: error.message,
+    }
   }
 
   await supabase.from("audit_logs").insert({
@@ -60,5 +73,9 @@ export async function createProduct(formData: FormData) {
   })
 
   revalidatePath("/products")
-  redirect("/products")
+
+  return {
+    success: true,
+    message: "Product created successfully.",
+  }
 }
