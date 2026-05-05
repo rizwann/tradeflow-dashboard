@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
-import { EmptyState } from "@/components/shared/empty-state"
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
+import { SaleTable, type SaleTableRow } from "@/features/sales/sale-table"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
@@ -16,7 +16,7 @@ type SaleRow = {
   id: string
   quantity: number
   unit_selling_price_bdt: number
-  discount: number
+  discount: number | null
   sale_date: string
   payment_status: "paid" | "unpaid" | "partial"
   products: {
@@ -39,6 +39,21 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
   if (error) {
     return <ErrorState title="Could not load sales" message={error.message} />
   }
+
+  const saleRows: SaleTableRow[] = (sales ?? []).map((sale) => {
+    const discount = Number(sale.discount ?? 0)
+
+    return {
+      id: sale.id,
+      productName: sale.products?.name ?? "Unknown product",
+      quantity: sale.quantity,
+      unitSellingPriceBdt: sale.unit_selling_price_bdt,
+      discount,
+      revenue: sale.quantity * sale.unit_selling_price_bdt - discount,
+      paymentStatus: sale.payment_status,
+      saleDate: sale.sale_date,
+    }
+  })
 
   return (
     <div className="space-y-6">
@@ -75,44 +90,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
         </div>
       ) : null}
 
-      <div className="rounded-xl border bg-background shadow-sm">
-        {sales.length ? (
-          <div className="divide-y">
-            {sales.map((sale) => {
-              const productName = sale.products?.name ?? "Unknown product"
-              const revenue =
-                sale.quantity * sale.unit_selling_price_bdt - sale.discount
-
-              return (
-                <div
-                  key={sale.id}
-                  className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center"
-                >
-                  <div>
-                    <p className="font-medium">{productName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {sale.quantity} pcs · ৳{sale.unit_selling_price_bdt} each
-                      · {sale.payment_status}
-                    </p>
-                  </div>
-
-                  <div className="text-left sm:text-right">
-                    <p className="font-medium">৳{revenue}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {sale.sale_date}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <EmptyState
-            title="No sales yet"
-            description="Record your first sale after receiving inventory in Bangladesh."
-          />
-        )}
-      </div>
+      <SaleTable sales={saleRows} />
     </div>
   )
 }
