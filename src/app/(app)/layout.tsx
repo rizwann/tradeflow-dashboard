@@ -32,7 +32,7 @@ export default async function AppLayout({
   const role = profile.role as UserRole
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-muted/40">
+    <div className="min-h-screen overflow-x-hidden bg-transparent">
       <div className="flex min-w-0">
         <Sidebar role={role} />
 

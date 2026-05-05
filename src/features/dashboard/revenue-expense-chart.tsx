@@ -38,6 +38,19 @@ function getSeriesLabel(name: string) {
   return "Revenue"
 }
 
+const chartAxisStyle = {
+  fill: "var(--chart-axis)",
+  fontSize: 12,
+}
+
+const chartTooltipStyle = {
+  backgroundColor: "var(--popover)",
+  borderColor: "var(--border)",
+  color: "var(--popover-foreground)",
+  borderRadius: "14px",
+  boxShadow: "0 12px 32px rgba(15, 23, 42, 0.16)",
+}
+
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   if (data.length === 0) {
     return (
@@ -73,43 +86,62 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
           <div className="h-80 min-w-[40rem] sm:h-96 sm:min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis tickFormatter={(value: number) => formatBDT(value)} />
+                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="month"
+                  tick={chartAxisStyle}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={(value: number) => formatBDT(value)}
+                  tick={chartAxisStyle}
+                  axisLine={false}
+                  tickLine={false}
+                  width={80}
+                />
                 <Tooltip
+                  contentStyle={chartTooltipStyle}
+                  cursor={{
+                    fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
+                  }}
                   formatter={(value, name) => [
                     formatBDT(Number(value ?? 0)),
                     getSeriesLabel(String(name)),
                   ]}
+                  labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
                 />
-                <Legend formatter={getSeriesLabel} />
+                <Legend
+                  formatter={getSeriesLabel}
+                  wrapperStyle={{ paddingTop: 8 }}
+                />
                 <Bar
                   dataKey="revenue"
                   name="revenue"
-                  fill="hsl(var(--chart-1, 215 90% 55%))"
+                  fill="var(--chart-1)"
                   radius={[6, 6, 0, 0]}
                 />
                 <Bar
                   dataKey="expenses"
                   name="expenses"
-                  fill="hsl(var(--chart-4, 12 76% 61%))"
+                  fill="var(--chart-4)"
                   radius={[6, 6, 0, 0]}
                 />
                 <Line
                   type="monotone"
                   dataKey="grossProfit"
                   name="grossProfit"
-                  stroke="hsl(var(--chart-2, 160 70% 38%))"
+                  stroke="var(--chart-2)"
                   strokeWidth={2.5}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "var(--chart-2)" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="netProfit"
                   name="netProfit"
-                  stroke="hsl(var(--chart-5, 262 75% 55%))"
+                  stroke="var(--chart-5)"
                   strokeWidth={2.5}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "var(--chart-5)" }}
                 />
               </ComposedChart>
             </ResponsiveContainer>

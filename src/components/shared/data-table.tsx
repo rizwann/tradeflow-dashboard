@@ -71,11 +71,12 @@ export function DataTable<TData, TValue>({
           placeholder={searchPlaceholder}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
+          aria-label={searchPlaceholder}
           className="w-full sm:max-w-sm"
         />
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.05)]">
         <div className="overflow-x-auto">
           <Table className={tableClassName}>
             <TableHeader>
@@ -113,7 +114,7 @@ export function DataTable<TData, TValue>({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-32 px-4 text-center"
+                    className="h-32 px-6 text-center"
                   >
                     <div className="space-y-1">
                       <p className="font-medium">No matching results</p>
