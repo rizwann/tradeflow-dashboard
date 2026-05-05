@@ -1,55 +1,146 @@
-import { createPurchase } from "./purchase-actions"
+"use client"
+
+import { useEffect } from "react"
+import { useActionState } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import type { z } from "zod"
+
+import {
+  createPurchase,
+  type PurchaseActionState,
+} from "./purchase-actions"
+import {
+  purchaseSchema,
+  type PurchaseFormValues,
+} from "./purchase-schema"
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  FieldErrorInput,
+  FieldErrorSelect,
+} from "@/components/forms/field-error-input"
 
 type Product = {
   id: string
   name: string
 }
 
+const initialState: PurchaseActionState = {
+  success: false,
+  message: "",
+}
+
 export function PurchaseForm({ products }: { products: Product[] }) {
+  const router = useRouter()
+  const [state, formAction, isPending] = useActionState(
+    createPurchase,
+    initialState,
+  )
+
+  const {
+    register,
+    trigger,
+    formState: { errors },
+  } = useForm<z.input<typeof purchaseSchema>, unknown, PurchaseFormValues>({
+    resolver: zodResolver(purchaseSchema),
+    defaultValues: {
+      product_id: products[0]?.id ?? "",
+      quantity: 1,
+      unit_cost_eur: 0,
+      exchange_rate: 130,
+      purchase_date: "",
+      notes: "",
+    },
+  })
+
+  useEffect(() => {
+    if (!state.message) return
+
+    if (state.success) {
+      toast.success(state.message)
+      router.push("/purchases")
+      router.refresh()
+    } else {
+      toast.error(state.message)
+    }
+  }, [router, state])
+
   return (
-    <form action={createPurchase} className="space-y-6">
-      <div className="space-y-2">
-        <Label>Product</Label>
-        <select name="product_id" className="w-full rounded-md border p-2">
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </div>
+    <form
+      action={formAction}
+      className="space-y-6"
+      noValidate
+      onSubmit={async (event) => {
+        const isValid = await trigger()
+
+        if (!isValid) {
+          event.preventDefault()
+        }
+      }}
+    >
+      <FieldErrorSelect
+        label="Product"
+        error={errors.product_id?.message}
+        {...register("product_id")}
+      >
+        <option value="" disabled>
+          Select a product
+        </option>
+        {products.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </FieldErrorSelect>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label>Quantity</Label>
-          <Input name="quantity" type="number" required />
-        </div>
+        <FieldErrorInput
+          label="Quantity"
+          type="number"
+          required
+          error={errors.quantity?.message}
+          {...register("quantity")}
+        />
 
-        <div>
-          <Label>Unit cost EUR</Label>
-          <Input name="unit_cost_eur" type="number" step="0.01" required />
-        </div>
+        <FieldErrorInput
+          label="Unit cost EUR"
+          type="number"
+          step="0.01"
+          required
+          error={errors.unit_cost_eur?.message}
+          {...register("unit_cost_eur")}
+        />
 
-        <div>
-          <Label>Exchange rate</Label>
-          <Input name="exchange_rate" type="number" step="0.01" required />
-        </div>
+        <FieldErrorInput
+          label="Exchange rate"
+          type="number"
+          step="0.01"
+          required
+          error={errors.exchange_rate?.message}
+          {...register("exchange_rate")}
+        />
 
-        <div>
-          <Label>Purchase date</Label>
-          <Input name="purchase_date" type="date" required />
-        </div>
+        <FieldErrorInput
+          label="Purchase date"
+          type="date"
+          required
+          error={errors.purchase_date?.message}
+          {...register("purchase_date")}
+        />
       </div>
 
-      <div>
-        <Label>Notes</Label>
-        <Input name="notes" />
-      </div>
+      <FieldErrorInput
+        label="Notes"
+        error={errors.notes?.message}
+        {...register("notes")}
+      />
 
-      <Button type="submit">Record purchase</Button>
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Recording purchase..." : "Record purchase"}
+      </Button>
     </form>
   )
 }

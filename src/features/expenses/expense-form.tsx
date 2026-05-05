@@ -1,7 +1,27 @@
-import { createExpense } from "./expense-actions"
+"use client"
+
+import { useEffect } from "react"
+import { useActionState } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import type { z } from "zod"
+
+import {
+  createExpense,
+  type ExpenseActionState,
+} from "./expense-actions"
+import {
+  expenseSchema,
+  type ExpenseFormValues,
+} from "./expense-schema"
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  FieldErrorInput,
+  FieldErrorSelect,
+} from "@/components/forms/field-error-input"
 
 type ShipmentOption = {
   id: string
@@ -12,54 +32,106 @@ type ExpenseFormProps = {
   shipments: ShipmentOption[]
 }
 
+const initialState: ExpenseActionState = {
+  success: false,
+  message: "",
+}
+
 export function ExpenseForm({ shipments }: ExpenseFormProps) {
+  const router = useRouter()
+  const [state, formAction, isPending] = useActionState(
+    createExpense,
+    initialState,
+  )
+  const {
+    register,
+    trigger,
+    formState: { errors },
+  } = useForm<z.input<typeof expenseSchema>, unknown, ExpenseFormValues>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      type: "shipping",
+      amount: 0,
+      currency: "BDT",
+      date: "",
+      shipment_id: undefined,
+      notes: undefined,
+    },
+  })
+
+  useEffect(() => {
+    if (!state.message) return
+
+    if (state.success) {
+      toast.success(state.message)
+      router.push("/expenses")
+      router.refresh()
+    } else {
+      toast.error(state.message)
+    }
+  }, [router, state])
+
   return (
-    <form action={createExpense} className="space-y-6">
+    <form
+      action={formAction}
+      className="space-y-6"
+      noValidate
+      onSubmit={async (event) => {
+        const isValid = await trigger()
+
+        if (!isValid) {
+          event.preventDefault()
+        }
+      }}
+    >
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Expense type</Label>
-          <select
-            name="type"
-            required
-            className="w-full rounded-md border bg-background p-2 text-sm"
-          >
-            <option value="shipping">Shipping</option>
-            <option value="customs">Customs</option>
-            <option value="packaging">Packaging</option>
-            <option value="marketing">Marketing</option>
-            <option value="delivery">Delivery</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+        <FieldErrorSelect
+          label="Expense type"
+          required
+          error={errors.type?.message}
+          {...register("type")}
+        >
+          <option value="shipping">Shipping</option>
+          <option value="customs">Customs</option>
+          <option value="packaging">Packaging</option>
+          <option value="marketing">Marketing</option>
+          <option value="delivery">Delivery</option>
+          <option value="other">Other</option>
+        </FieldErrorSelect>
 
-        <div className="space-y-2">
-          <Label>Amount</Label>
-          <Input name="amount" type="number" step="0.01" min={0} required />
-        </div>
+        <FieldErrorInput
+          label="Amount"
+          type="number"
+          step="0.01"
+          min={0}
+          required
+          error={errors.amount?.message}
+          {...register("amount")}
+        />
 
-        <div className="space-y-2">
-          <Label>Currency</Label>
-          <select
-            name="currency"
-            defaultValue="BDT"
-            className="w-full rounded-md border bg-background p-2 text-sm"
-          >
-            <option value="BDT">BDT</option>
-            <option value="EUR">EUR</option>
-          </select>
-        </div>
+        <FieldErrorSelect
+          label="Currency"
+          error={errors.currency?.message}
+          {...register("currency")}
+        >
+          <option value="BDT">BDT</option>
+          <option value="EUR">EUR</option>
+        </FieldErrorSelect>
 
-        <div className="space-y-2">
-          <Label>Date</Label>
-          <Input name="date" type="date" required />
-        </div>
+        <FieldErrorInput
+          label="Date"
+          type="date"
+          required
+          error={errors.date?.message}
+          {...register("date")}
+        />
 
-        <div className="space-y-2 md:col-span-2">
-          <Label>Related shipment</Label>
-          <select
-            name="shipment_id"
-            className="w-full rounded-md border bg-background p-2 text-sm"
+        <div className="md:col-span-2">
+          <FieldErrorSelect
+            label="Related shipment"
+            error={errors.shipment_id?.message}
             defaultValue=""
+            {...register("shipment_id")}
           >
             <option value="">No shipment</option>
             {shipments.map((shipment) => (
@@ -67,16 +139,20 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
                 {shipment.shipment_code}
               </option>
             ))}
-          </select>
+          </FieldErrorSelect>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Notes</Label>
-        <Input name="notes" placeholder="Optional notes" />
-      </div>
+      <FieldErrorInput
+        label="Notes"
+        placeholder="Optional notes"
+        error={errors.notes?.message}
+        {...register("notes")}
+      />
 
-      <Button type="submit">Add expense</Button>
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Adding expense..." : "Add expense"}
+      </Button>
     </form>
   )
 }

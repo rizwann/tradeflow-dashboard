@@ -15,9 +15,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return {
-      error: "Invalid email or password.",
-    }
+    redirect("/login?error=invalid-credentials")
   }
 
   redirect("/dashboard")
