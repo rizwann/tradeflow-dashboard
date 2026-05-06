@@ -68,10 +68,10 @@ export const navItems: NavItem[] = [
     icon: BarChart3,
     roles: ["admin", "partner"],
   },
-  {
-    title: "Accounting",
-    href: "/accounting",
-    icon: Wallet,
-    roles: ["admin"],
-  },
+  // {
+  //   title: "Accounting",
+  //   href: "/accounting",
+  //   icon: Wallet,
+  //   roles: ["admin"],                 // For Future....
+  // },
 ]

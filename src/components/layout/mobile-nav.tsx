@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { navItems, type UserRole } from "@/types/app"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -20,11 +22,12 @@ type MobileNavProps = {
 
 export function MobileNav({ role }: MobileNavProps) {
   const pathname = usePathname()
+  const [open, setOpen] = useState(false)
 
   const visibleNavItems = navItems.filter((item) => item.roles.includes(role))
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
@@ -61,34 +64,35 @@ export function MobileNav({ role }: MobileNavProps) {
             const isActive = pathname === item.href
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "relative flex min-h-11 items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:border-sidebar-border/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                  isActive
-                    ? "border-sidebar-border/80 bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
-                    : "border-transparent",
-                )}
-              >
-                <span
-                  aria-hidden="true"
+              <SheetClose key={item.href} asChild>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "absolute inset-y-3 left-1.5 w-1 rounded-full transition-colors",
-                    isActive ? "bg-sidebar-primary" : "bg-transparent",
-                  )}
-                />
-                <Icon
-                  className={cn(
-                    "h-4 w-4",
+                    "relative flex min-h-11 items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium text-muted-foreground transition-all hover:border-sidebar-border/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                     isActive
-                      ? "text-sidebar-primary"
-                      : "text-muted-foreground",
+                      ? "border-sidebar-border/80 bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+                      : "border-transparent",
                   )}
-                />
-                {item.title}
-              </Link>
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute inset-y-3 left-1.5 w-1 rounded-full transition-colors",
+                      isActive ? "bg-sidebar-primary" : "bg-transparent",
+                    )}
+                  />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      isActive
+                        ? "text-sidebar-primary"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                  {item.title}
+                </Link>
+              </SheetClose>
             )
           })}
         </nav>
