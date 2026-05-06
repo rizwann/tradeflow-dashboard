@@ -11,6 +11,7 @@ import type { z } from "zod"
 import {
   createExpense,
   type ExpenseActionState,
+  updateExpense,
 } from "./expense-actions"
 import {
   expenseSchema,
@@ -28,8 +29,22 @@ type ShipmentOption = {
   shipment_code: string
 }
 
+type ExpenseFormMode = "create" | "edit"
+
+type EditableExpense = {
+  id: string
+  type: ExpenseFormValues["type"]
+  amount: number
+  currency: string
+  date: string
+  shipment_id?: string | null
+  notes?: string | null
+}
+
 type ExpenseFormProps = {
+  mode: ExpenseFormMode
   shipments: ShipmentOption[]
+  expense?: EditableExpense
 }
 
 const initialState: ExpenseActionState = {
@@ -37,10 +52,11 @@ const initialState: ExpenseActionState = {
   message: "",
 }
 
-export function ExpenseForm({ shipments }: ExpenseFormProps) {
+export function ExpenseForm({ mode, shipments, expense }: ExpenseFormProps) {
   const router = useRouter()
+  const action = mode === "edit" ? updateExpense : createExpense
   const [state, formAction, isPending] = useActionState(
-    createExpense,
+    action,
     initialState,
   )
   const {
@@ -50,12 +66,12 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
   } = useForm<z.input<typeof expenseSchema>, unknown, ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
-      type: "shipping",
-      amount: 0,
-      currency: "BDT",
-      date: "",
-      shipment_id: undefined,
-      notes: undefined,
+      type: expense?.type ?? "shipping",
+      amount: expense?.amount ?? 0,
+      currency: expense?.currency ?? "BDT",
+      date: expense?.date ?? "",
+      shipment_id: expense?.shipment_id ?? "",
+      notes: expense?.notes ?? "",
     },
   })
 
@@ -84,13 +100,19 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
         }
       }}
     >
+      {mode === "edit" && expense ? (
+        <input type="hidden" name="id" value={expense.id} />
+      ) : null}
+
       <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             Expense Ledger
           </p>
           <h2 className="text-lg font-semibold tracking-tight">
-            Log an operating expense
+            {mode === "edit"
+              ? "Update an operating expense"
+              : "Log an operating expense"}
           </h2>
         </div>
 
@@ -164,7 +186,13 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
       </section>
 
       <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
-        {isPending ? "Adding expense..." : "Add expense"}
+        {isPending
+          ? mode === "edit"
+            ? "Updating expense..."
+            : "Adding expense..."
+          : mode === "edit"
+            ? "Update expense"
+            : "Add expense"}
       </Button>
     </form>
   )

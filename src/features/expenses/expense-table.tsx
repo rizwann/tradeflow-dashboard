@@ -2,8 +2,11 @@
 
 import type { ColumnDef } from "@tanstack/react-table"
 
+import { ExpenseTableActions } from "./expense-table-actions"
+
 import { DataTable } from "@/components/shared/data-table"
 import { SortableHeader } from "@/components/shared/sortable-header"
+import type { UserRole } from "@/types/app"
 
 export type ExpenseTableRow = {
   id: string
@@ -13,6 +16,7 @@ export type ExpenseTableRow = {
   relatedShipment: string
   date: string
   notes: string
+  paidById: string
 }
 
 function formatAmount(amount: number, currency: string) {
@@ -27,7 +31,11 @@ function formatType(type: ExpenseTableRow["type"]) {
   return type.charAt(0).toUpperCase() + type.slice(1)
 }
 
-const columns: ColumnDef<ExpenseTableRow>[] = [
+function getColumns(
+  currentUserId: string,
+  currentUserRole: UserRole,
+): ColumnDef<ExpenseTableRow>[] {
+  return [
   {
     accessorKey: "type",
     header: ({ column }) => <SortableHeader column={column} title="Type" />,
@@ -66,16 +74,42 @@ const columns: ColumnDef<ExpenseTableRow>[] = [
         <span className="text-sm text-muted-foreground">—</span>
       ),
   },
-]
+    {
+      id: "actions",
+      header: "Actions",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const canEdit =
+          currentUserRole === "admin" || row.original.paidById === currentUserId
+        const canDelete = currentUserRole === "admin"
+
+        return (
+          <ExpenseTableActions
+            expenseId={row.original.id}
+            expenseType={formatType(row.original.type)}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
+        )
+      },
+    },
+  ]
+}
 
 type ExpenseTableProps = {
   expenses: ExpenseTableRow[]
+  currentUserId: string
+  currentUserRole: UserRole
 }
 
-export function ExpenseTable({ expenses }: ExpenseTableProps) {
+export function ExpenseTable({
+  expenses,
+  currentUserId,
+  currentUserRole,
+}: ExpenseTableProps) {
   return (
     <DataTable
-      columns={columns}
+      columns={getColumns(currentUserId, currentUserRole)}
       data={expenses}
       searchKey="type"
       searchPlaceholder="Search expenses by type, currency, shipment, or notes..."

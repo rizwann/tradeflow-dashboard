@@ -6,6 +6,7 @@ import {
   ExpenseTable,
   type ExpenseTableRow,
 } from "@/features/expenses/expense-table"
+import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
@@ -22,17 +23,21 @@ type ExpenseRow = {
   currency: string
   date: string
   notes: string | null
+  paid_by: string
   shipments: {
     shipment_code: string
   } | null
 }
 
 export default async function ExpensesPage() {
+  const session = await requireRole(["admin", "partner"])
   const supabase = await createClient()
 
   const { data: expenses, error } = await supabase
     .from("expenses")
-    .select("id, type, amount, currency, date, notes, shipments(shipment_code)")
+    .select(
+      "id, type, amount, currency, date, notes, paid_by, shipments(shipment_code)",
+    )
     .order("created_at", { ascending: false })
     .returns<ExpenseRow[]>()
 
@@ -50,6 +55,7 @@ export default async function ExpensesPage() {
     relatedShipment: expense.shipments?.shipment_code ?? "No shipment",
     date: expense.date,
     notes: expense.notes ?? "",
+    paidById: expense.paid_by,
   }))
 
   const totalExpenses = expenseRows.reduce((sum, expense) => {
@@ -77,7 +83,11 @@ export default async function ExpensesPage() {
         <p className="mt-1 text-2xl font-bold">৳{totalExpenses}</p>
       </div>
 
-      <ExpenseTable expenses={expenseRows} />
+      <ExpenseTable
+        expenses={expenseRows}
+        currentUserId={session.user.id}
+        currentUserRole={session.profile.role}
+      />
     </div>
   )
 }
