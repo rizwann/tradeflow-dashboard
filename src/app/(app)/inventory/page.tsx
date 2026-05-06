@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
 import { PageHeader } from "@/components/shared/page-header"
@@ -5,6 +6,7 @@ import {
   InventoryTable,
   type InventoryRow,
 } from "@/features/inventory/inventory-table"
+import { Button } from "@/components/ui/button"
 
 type ProductRow = {
   id: string
@@ -74,6 +76,11 @@ export default async function InventoryPage() {
       <PageHeader
         title="Inventory"
         description="Track stock across Germany, in transit, and Bangladesh."
+        actions={
+          <Button asChild>
+            <Link href="/inventory/adjust">Adjust inventory</Link>
+          </Button>
+        }
       />
 
       <InventoryTable rows={rows} />
