@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { startTransition, useState } from "react"
 import { useRouter } from "next/navigation"
-import { PencilLine, Trash2 } from "lucide-react"
+import { Eye, PencilLine, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { deleteShipment } from "./shipment-actions"
@@ -52,6 +52,20 @@ export function ShipmentTableActions({
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
+      <Button
+        asChild
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 rounded-full border border-border/60 bg-background/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+      >
+        <Link
+          href={`/shipments/${shipmentId}`}
+          aria-label={`View shipment ${shipmentCode}`}
+        >
+          <Eye className="h-4 w-4" />
+        </Link>
+      </Button>
+
       <ShipmentStatusActions shipmentId={shipmentId} status={status} />
 
       {canManageDraft ? (
