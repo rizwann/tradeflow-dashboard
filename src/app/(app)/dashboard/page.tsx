@@ -30,6 +30,7 @@ type SaleRow = {
   unit_selling_price_bdt: number
   discount: number | null
   sale_date: string
+  status: "active" | "voided"
   products: {
     name: string
   } | null
@@ -60,6 +61,9 @@ type SaleBatchConsumptionRow = {
   quantity: number
   total_cost: number
   gross_profit: number
+  sales: {
+    status: "active" | "voided"
+  } | null
 }
 
 type InventoryBatchRow = {
@@ -204,8 +208,9 @@ export default async function DashboardPage() {
     supabase
       .from("sales")
       .select(
-        "id, product_id, quantity, unit_selling_price_bdt, discount, sale_date, products(name)",
+        "id, product_id, quantity, unit_selling_price_bdt, discount, sale_date, status, products(name)",
       )
+      .eq("status", "active")
       .returns<SaleRow[]>(),
     supabase.from("expenses").select("amount, currency, date").returns<
       ExpenseRow[]
@@ -220,7 +225,10 @@ export default async function DashboardPage() {
       .returns<ProductRow[]>(),
     supabase
       .from("sale_batch_consumptions")
-      .select("sale_id, product_id, quantity, total_cost, gross_profit")
+      .select(
+        "sale_id, product_id, quantity, total_cost, gross_profit, sales!inner(status)",
+      )
+      .eq("sales.status", "active")
       .returns<SaleBatchConsumptionRow[]>(),
     supabase
       .from("inventory_batches")
