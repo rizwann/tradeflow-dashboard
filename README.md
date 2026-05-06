@@ -1,121 +1,175 @@
 # TradeFlow Dashboard
 
-TradeFlow Dashboard is an internal business operations web app for a small Germany-to-Bangladesh import and resale workflow.
+A modern full-stack import operations and inventory management platform built for cross-border commerce between Germany and Bangladesh.
 
-It helps track products, purchases, shipments, inventory movement, Bangladesh-side sales, expenses, and profitability.
+TradeFlow helps manage:
+
+- Product catalog
+- Purchases and procurement
+- Shipment lifecycle
+- Multi-location inventory
+- FIFO inventory accounting
+- Sales and profit tracking
+- Operational expenses
+- Business analytics and reporting
+
+Built with Next.js, Supabase, TypeScript, Tailwind, and shadcn/ui.
+
+
+
+
+
+## Features
+
+### Authentication & Roles
+- Supabase Authentication
+- Role-based access control
+- Admin and Partner permissions
+- Protected routes and server actions
+
+### Product Management
+- Product catalog management
+- Product editing
+- Pricing in EUR and BDT
+- Exchange rate conversion
+
+### Inventory Management
+- Multi-location inventory:
+  - Germany
+  - In Transit
+  - Bangladesh
+- Inventory adjustments with audit trail
+- Inventory movement tracking
+
+### Shipment Management
+- Draft shipment workflow
+- Shipment send/receive lifecycle
+- Shipment item management
+- Shipping and customs cost tracking
+
+### FIFO Accounting
+- FIFO batch tracking
+- Landed cost calculation
+- Shipment profitability
+- Sale profit tracking
+
+### Sales System
+- Transaction-safe sale recording
+- FIFO consumption allocation
+- Sale void/reversal flow
+- Payment status tracking
+
+### Expenses & Accounting
+- Expense tracking
+- Shipment-linked expenses
+- Net profit calculations
+- Audit logging
+
+### Reports & Analytics
+- Revenue and profit dashboard
+- Shipment profitability reports
+- Product profitability reports
+- KPI cards and charts
+
+### UX & UI
+- Fully responsive design
+- Dark/light mode
+- Searchable/sortable tables
+- CSV exports
+- Loading/error states
+- Accessible UI
+
 
 ## Tech Stack
 
+### Frontend
 - Next.js App Router
 - React
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
-- Supabase Auth
-- Supabase PostgreSQL
-- Supabase Row Level Security
-- React Server Actions
+- TanStack Table
 - Recharts
-- Jest
-- React Testing Library
+- React Hook Form
+- Zod
 
-## Core Features
+### Backend
+- Supabase
+- PostgreSQL
+- Supabase RPC functions
+- Row Level Security (RLS)
 
-### Authentication and Roles
+### Architecture
+- Server Components
+- Server Actions
+- Transaction-safe SQL RPC
+- FIFO inventory accounting
+- Audit logging system
 
-- Supabase email/password authentication
-- Admin and partner roles
-- Protected routes
-- Role-aware navigation
-- Server-side authorization checks
 
-### Products
+## System Architecture
 
-- Add products
-- Store SKU, brand, category, EUR purchase price, exchange rate, and BDT selling price
-- Product listing with empty and error states
+TradeFlow uses a hybrid architecture:
 
-### Purchases
+- Next.js App Router for frontend and server rendering
+- Supabase PostgreSQL for persistence
+- Supabase Auth for authentication
+- SQL RPC functions for transaction-critical operations
 
-- Record Germany-side purchases
-- Automatically increase Germany inventory
-- Log inventory movements
-- Create audit logs
+Critical operations are executed atomically inside PostgreSQL functions:
 
-### Shipments
+- record_sale_with_fifo
+- void_sale_with_reversal
 
-- Create multi-item shipments
-- Track shipment status
-- Move inventory from Germany to In Transit
-- Move inventory from In Transit to Bangladesh
-- Prevent shipment when Germany stock is insufficient
-- Audit shipment status changes
+This guarantees inventory consistency and FIFO correctness.
 
-### Inventory
+## FIFO Inventory Accounting
 
-- View stock by location:
-  - Germany
-  - In Transit
-  - Bangladesh
-- Total stock calculation
-- Low-stock and out-of-stock status badges
+TradeFlow uses FIFO (First In, First Out) inventory accounting.
 
-### Sales
+When shipments are received:
 
-- Record Bangladesh-side sales
-- Automatically decrease Bangladesh inventory
-- Prevent sales when Bangladesh stock is insufficient
-- Track payment status
-- Log inventory movement and audit events
+1. Inventory batches are created
+2. Each batch stores:
+   - remaining quantity
+   - landed cost
+   - shipment linkage
 
-### Expenses
+When a sale occurs:
 
-- Track shipping, customs, packaging, marketing, delivery, and other costs
-- Optional shipment linking
-- Separate BDT and EUR expense handling
+1. The oldest available inventory batch is consumed first
+2. sale_batch_consumptions records:
+   - consumed quantity
+   - landed cost
+   - revenue
+   - gross profit
 
-### Dashboard
+This enables:
+- Accurate profit reporting
+- Shipment profitability
+- Product profitability
+- Historical inventory traceability
 
-- Total revenue
-- Total expenses
-- Estimated profit
-- Profit margin
-- Inventory by location
-- Monthly revenue, expense, and profit chart
 
-### Reports
+## Future Improvements
 
-- Product-level profitability
-- Monthly revenue vs expenses
-- Gross profit estimate
-- Clear MVP note for landed-cost improvement
+- PDF invoices
+- Email notifications
+- Supplier management
+- Advanced analytics filters
+- PWA support
+- Multi-currency accounting
+- Barcode scanning
 
-## Business Rules
 
-- Purchases increase Germany inventory.
-- Sent shipments move stock from Germany to In Transit.
-- Received shipments move stock from In Transit to Bangladesh.
-- Sales decrease Bangladesh inventory.
-- Partners cannot delete historical records.
-- Important actions are logged in `audit_logs`.
 
-## Database Tables
+## About This Project
 
-- `profiles`
-- `products`
-- `inventory`
-- `inventory_movements`
-- `purchases`
-- `shipments`
-- `shipment_items`
-- `sales`
-- `expenses`
-- `audit_logs`
+This project was designed and developed as a real-world business operations platform focused on inventory, logistics, and profitability management for cross-border commerce.
 
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/rizwann/tradeflow-dashboard.git
-cd tradeflow-dashboard
+The system emphasizes:
+- transactional safety
+- inventory correctness
+- auditability
+- responsive UX
+- scalable architecture
