@@ -20,7 +20,7 @@ export default async function NewExpensePage() {
       </div>
 
       <div className="rounded-xl border bg-background p-6 shadow-sm">
-        <ExpenseForm shipments={shipments ?? []} />
+        <ExpenseForm mode="create" shipments={shipments ?? []} />
       </div>
     </div>
   )
