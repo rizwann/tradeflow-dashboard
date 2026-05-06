@@ -19,9 +19,11 @@ type ConfirmDialogProps = {
   trigger: ReactNode
   title: string
   description: string
+  children?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   isPending?: boolean
+  pendingLabel?: string
   onConfirm: () => void
 }
 
@@ -31,9 +33,11 @@ export function ConfirmDialog({
   trigger,
   title,
   description,
+  children,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   isPending = false,
+  pendingLabel = "Processing...",
   onConfirm,
 }: ConfirmDialogProps) {
   return (
@@ -44,6 +48,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {children ? <div className="px-6">{children}</div> : null}
 
         <DialogFooter className="rounded-b-[1.6rem] border-border/60 bg-muted/35">
           <Button
@@ -60,7 +65,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={isPending}
           >
-            {isPending ? "Deleting..." : confirmLabel}
+            {isPending ? pendingLabel : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

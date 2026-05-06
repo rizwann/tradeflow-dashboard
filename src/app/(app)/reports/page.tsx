@@ -13,6 +13,7 @@ type SaleRow = {
   unit_selling_price_bdt: number
   discount: number
   sale_date: string
+  status: "active" | "voided"
   products: {
     name: string
   } | null
@@ -40,6 +41,9 @@ type SaleBatchConsumptionRow = {
   total_cost: number
   total_revenue: number
   gross_profit: number
+  sales: {
+    status: "active" | "voided"
+  } | null
   inventory_batches: {
     shipment_id: string | null
   } | null
@@ -62,8 +66,9 @@ export default async function ReportsPage() {
   const { data: sales, error: salesError } = await supabase
     .from("sales")
     .select(
-      "product_id, quantity, unit_selling_price_bdt, discount, sale_date, products(name)",
+      "product_id, quantity, unit_selling_price_bdt, discount, sale_date, status, products(name)",
     )
+    .eq("status", "active")
     .returns<SaleRow[]>()
 
   const { data: saleBatchConsumptions, error: saleBatchError } = await supabase
@@ -76,11 +81,15 @@ export default async function ReportsPage() {
       total_cost,
       total_revenue,
       gross_profit,
+      sales!inner (
+        status
+      ),
       inventory_batches (
         shipment_id
       )
     `,
     )
+    .eq("sales.status", "active")
     .returns<SaleBatchConsumptionRow[]>()
 
   const { data: expenses, error: expensesError } = await supabase

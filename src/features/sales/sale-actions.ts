@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { saleSchema } from "./sale-schema"
 
@@ -22,6 +23,18 @@ function mapSaleErrorMessage(message: string) {
 
   if (normalizedMessage.includes("not enough fifo batch inventory")) {
     return "Not enough FIFO batch inventory is available for this sale."
+  }
+
+  if (normalizedMessage.includes("sale not found")) {
+    return "Sale could not be found."
+  }
+
+  if (normalizedMessage.includes("sale already voided")) {
+    return "This sale has already been voided."
+  }
+
+  if (normalizedMessage.includes("unauthorized")) {
+    return "You are not allowed to void this sale."
   }
 
   return message
@@ -97,6 +110,53 @@ export async function createSale(
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to record sale.",
+    }
+  }
+}
+
+export async function voidSale(
+  saleId: string,
+  reason: string,
+): Promise<SaleActionState> {
+  try {
+    const session = await requireRole(["admin", "partner"])
+    const supabase = await createClient()
+
+    if (!saleId) {
+      return {
+        success: false,
+        message: "Sale ID is required.",
+      }
+    }
+
+    const normalizedReason = reason.trim() || "Voided from sales table"
+
+    const { error } = await supabase.rpc("void_sale_with_reversal", {
+      p_sale_id: saleId,
+      p_user_id: session.user.id,
+      p_reason: normalizedReason,
+    })
+
+    if (error) {
+      return {
+        success: false,
+        message: mapSaleErrorMessage(error.message),
+      }
+    }
+
+    revalidatePath("/sales")
+    revalidatePath("/inventory")
+    revalidatePath("/dashboard")
+    revalidatePath("/reports")
+
+    return {
+      success: true,
+      message: "Sale voided successfully.",
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to void sale.",
     }
   }
 }

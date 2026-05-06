@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { SaleTable, type SaleTableRow } from "@/features/sales/sale-table"
+import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
@@ -19,6 +20,10 @@ type SaleRow = {
   discount: number | null
   sale_date: string
   payment_status: "paid" | "unpaid" | "partial"
+  sold_by: string
+  status: "active" | "voided"
+  voided_at: string | null
+  void_reason: string | null
   products: {
     name: string
   } | null
@@ -26,12 +31,13 @@ type SaleRow = {
 
 export default async function SalesPage({ searchParams }: SalesPageProps) {
   const params = await searchParams
+  const session = await requireRole(["admin", "partner"])
   const supabase = await createClient()
 
   const { data: sales, error } = await supabase
     .from("sales")
     .select(
-      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, products(name)",
+      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<SaleRow[]>()
@@ -52,6 +58,10 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
       revenue: sale.quantity * sale.unit_selling_price_bdt - discount,
       paymentStatus: sale.payment_status,
       saleDate: sale.sale_date,
+      soldBy: sale.sold_by,
+      status: sale.status,
+      voidedAt: sale.voided_at,
+      voidReason: sale.void_reason,
     }
   })
 
@@ -90,7 +100,11 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
         </div>
       ) : null}
 
-      <SaleTable sales={saleRows} />
+      <SaleTable
+        sales={saleRows}
+        currentUserId={session.user.id}
+        currentUserRole={session.profile.role}
+      />
     </div>
   )
 }
