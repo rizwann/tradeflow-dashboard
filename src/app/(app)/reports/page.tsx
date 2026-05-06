@@ -1,5 +1,6 @@
 import { MetricCard } from "@/components/shared/metric-card"
 import { PageHeader } from "@/components/shared/page-header"
+import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
@@ -104,12 +105,16 @@ export default async function ReportsPage() {
 
   if (salesError || saleBatchError || expensesError || shipmentProfitError) {
     return (
-      <div className="rounded-xl border bg-background p-6">
-        <h1 className="text-xl font-semibold">Could not load reports</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Please refresh the page or try again later.
-        </p>
-      </div>
+      <ErrorState
+        title="Could not load reports"
+        message={
+          salesError?.message ??
+          saleBatchError?.message ??
+          expensesError?.message ??
+          shipmentProfitError?.message ??
+          "Please refresh the page or try again later."
+        }
+      />
     )
   }
 
@@ -309,21 +314,30 @@ export default async function ReportsPage() {
 
       <MonthlyReportChart data={monthlyData} />
 
-      <div>
-        <h2 className="mb-3 text-xl font-semibold">Profit by product</h2>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Product View
+          </p>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Profit by product
+          </h2>
+        </div>
         <ProductProfitTable rows={productProfitRows} />
       </div>
 
-      <div>
-        <h2 className="mb-3 text-xl font-semibold">Profit by shipment</h2>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Shipment View
+          </p>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Profit by shipment
+          </h2>
+        </div>
         <ShipmentProfitTable rows={shipmentProfitRows} />
       </div>
 
-      <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-        Business note: product and shipment profitability now use FIFO batch
-        costs. Shipment revenue is allocated from actual sale revenue to the
-        consumed batches, making shipment profit accurate for recorded sales.
-      </div>
     </div>
   )
 }

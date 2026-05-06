@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/empty-state"
 import {
   Table,
   TableBody,
@@ -28,17 +29,15 @@ function formatBDT(value: number) {
 export function ProductProfitTable({ rows }: ProductProfitTableProps) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-8 text-center">
-        <h2 className="font-semibold">No sales data yet</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Record sales to generate product profitability reports.
-        </p>
-      </div>
+      <EmptyState
+        title="No sales data yet"
+        description="Record sales to generate product profitability reports."
+      />
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+    <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
       <Table className="min-w-[42rem]">
         <TableHeader>
           <TableRow>
@@ -54,8 +53,8 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.productId}>
-              <TableCell className="max-w-48 font-medium whitespace-normal">
-                {row.productName}
+              <TableCell className="max-w-56 whitespace-normal">
+                <div className="font-medium">{row.productName}</div>
               </TableCell>
               <TableCell className="text-right">{row.quantitySold}</TableCell>
               <TableCell className="text-right">

@@ -12,7 +12,7 @@ export function LoadingState() {
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm"
+            className="rounded-[1.75rem] border border-border/60 bg-card/75 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl"
           >
             <div className="space-y-3">
               <Skeleton className="h-4 w-24" />
@@ -24,7 +24,7 @@ export function LoadingState() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm">
+        <div className="rounded-[1.75rem] border border-border/60 bg-card/75 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
           <div className="space-y-4">
             <div className="space-y-2">
               <Skeleton className="h-5 w-40" />
@@ -34,7 +34,7 @@ export function LoadingState() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm">
+        <div className="rounded-[1.75rem] border border-border/60 bg-card/75 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
           <div className="space-y-4">
             <div className="space-y-2">
               <Skeleton className="h-5 w-36" />

@@ -67,16 +67,18 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {searchKey ? (
-        <Input
-          placeholder={searchPlaceholder}
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          aria-label={searchPlaceholder}
-          className="w-full sm:max-w-sm"
-        />
+        <div className="rounded-[1.5rem] border border-border/60 bg-card/60 p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur-xl">
+          <Input
+            placeholder={searchPlaceholder}
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            aria-label={searchPlaceholder}
+            className="w-full sm:max-w-sm"
+          />
+        </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.05)]">
+      <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
         <div className="overflow-x-auto">
           <Table className={tableClassName}>
             <TableHeader>
@@ -114,11 +116,13 @@ export function DataTable<TData, TValue>({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-32 px-6 text-center"
+                    className="h-36 px-6 text-center"
                   >
-                    <div className="space-y-1">
-                      <p className="font-medium">No matching results</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="space-y-1.5">
+                      <p className="font-semibold tracking-tight">
+                        No matching results
+                      </p>
+                      <p className="text-sm leading-6 text-muted-foreground">
                         {hasSearchQuery
                           ? "Try a different search term or clear the current filter."
                           : "There are no rows to display in the current view."}

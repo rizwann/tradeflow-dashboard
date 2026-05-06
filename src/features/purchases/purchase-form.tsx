@@ -81,64 +81,77 @@ export function PurchaseForm({ products }: { products: Product[] }) {
         }
       }}
     >
-      <FieldErrorSelect
-        label="Product"
-        error={errors.product_id?.message}
-        {...register("product_id")}
-      >
-        <option value="" disabled>
-          Select a product
-        </option>
-        {products.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
+      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Procurement
+          </p>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Record incoming stock
+          </h2>
+        </div>
+
+        <FieldErrorSelect
+          label="Product"
+          error={errors.product_id?.message}
+          {...register("product_id")}
+        >
+          <option value="" disabled>
+            Select a product
           </option>
-        ))}
-      </FieldErrorSelect>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </FieldErrorSelect>
 
-      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FieldErrorInput
+            label="Quantity"
+            type="number"
+            required
+            error={errors.quantity?.message}
+            {...register("quantity")}
+          />
+
+          <FieldErrorInput
+            label="Unit cost EUR"
+            type="number"
+            step="0.01"
+            required
+            error={errors.unit_cost_eur?.message}
+            {...register("unit_cost_eur")}
+          />
+
+          <FieldErrorInput
+            label="Exchange rate"
+            type="number"
+            step="0.01"
+            required
+            error={errors.exchange_rate?.message}
+            {...register("exchange_rate")}
+          />
+
+          <FieldErrorInput
+            label="Purchase date"
+            type="date"
+            required
+            error={errors.purchase_date?.message}
+            {...register("purchase_date")}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
         <FieldErrorInput
-          label="Quantity"
-          type="number"
-          required
-          error={errors.quantity?.message}
-          {...register("quantity")}
+          label="Notes"
+          error={errors.notes?.message}
+          {...register("notes")}
         />
+      </section>
 
-        <FieldErrorInput
-          label="Unit cost EUR"
-          type="number"
-          step="0.01"
-          required
-          error={errors.unit_cost_eur?.message}
-          {...register("unit_cost_eur")}
-        />
-
-        <FieldErrorInput
-          label="Exchange rate"
-          type="number"
-          step="0.01"
-          required
-          error={errors.exchange_rate?.message}
-          {...register("exchange_rate")}
-        />
-
-        <FieldErrorInput
-          label="Purchase date"
-          type="date"
-          required
-          error={errors.purchase_date?.message}
-          {...register("purchase_date")}
-        />
-      </div>
-
-      <FieldErrorInput
-        label="Notes"
-        error={errors.notes?.message}
-        {...register("notes")}
-      />
-
-      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
         {isPending ? "Recording purchase..." : "Record purchase"}
       </Button>
     </form>

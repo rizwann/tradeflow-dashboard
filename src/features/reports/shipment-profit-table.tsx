@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/empty-state"
 import {
   Table,
   TableBody,
@@ -28,23 +29,21 @@ function formatBDT(value: number) {
 export function ShipmentProfitTable({ rows }: ShipmentProfitTableProps) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-8 text-center">
-        <h2 className="font-semibold">No shipment profitability yet</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Create shipments and record sales to generate shipment profitability.
-        </p>
-      </div>
+      <EmptyState
+        title="No shipment profitability yet"
+        description="Create shipments and record sales to generate shipment profitability."
+      />
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+    <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
       <Table className="min-w-[42rem]">
         <TableHeader>
           <TableRow>
             <TableHead>Shipment</TableHead>
             <TableHead className="text-right">Qty</TableHead>
-            <TableHead className="text-right">Est. revenue</TableHead>
+            <TableHead className="text-right">Revenue</TableHead>
             <TableHead className="text-right">Landed cost</TableHead>
             <TableHead className="text-right">Gross profit</TableHead>
             <TableHead className="text-right">Margin</TableHead>

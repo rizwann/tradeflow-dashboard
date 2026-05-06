@@ -28,8 +28,13 @@ export function FieldErrorInput({
   const errorId = `${inputId}-error`
 
   return (
-    <div className="min-w-0 space-y-2">
-      <Label htmlFor={inputId}>{label}</Label>
+    <div className="min-w-0 space-y-2.5">
+      <Label
+        htmlFor={inputId}
+        className="text-[0.72rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+      >
+        {label}
+      </Label>
       <Input
         id={inputId}
         aria-invalid={Boolean(error)}
@@ -62,14 +67,19 @@ export function FieldErrorSelect({
   const errorId = `${selectId}-error`
 
   return (
-    <div className="min-w-0 space-y-2">
-      <Label htmlFor={selectId}>{label}</Label>
+    <div className="min-w-0 space-y-2.5">
+      <Label
+        htmlFor={selectId}
+        className="text-[0.72rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+      >
+        {label}
+      </Label>
       <select
         id={selectId}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          "h-10 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-sm shadow-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
+          "h-11 w-full min-w-0 rounded-2xl border border-border/70 bg-background/80 px-4 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.04)] transition-[border-color,box-shadow,background-color] outline-none focus-visible:border-ring focus-visible:bg-background focus-visible:ring-4 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:shadow-[0_1px_2px_rgba(0,0,0,0.24),0_12px_28px_rgba(0,0,0,0.18)]",
           className,
         )}
         {...props}

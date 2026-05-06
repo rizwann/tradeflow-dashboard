@@ -99,69 +99,87 @@ export function ShipmentForm({ products }: { products: Product[] }) {
         }
       }}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        <FieldErrorInput
-          label="Shipment code"
-          required
-          error={errors.shipment_code?.message}
-          {...register("shipment_code")}
-        />
+      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Shipment Setup
+          </p>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Create a new inbound shipment
+          </h2>
+        </div>
 
-        <FieldErrorSelect
-          label="Method"
-          error={errors.method?.message}
-          {...register("method")}
-        >
-          <option value="luggage">Luggage</option>
-          <option value="courier">Courier</option>
-          <option value="cargo">Cargo</option>
-        </FieldErrorSelect>
+        <div className="grid gap-4 md:grid-cols-2">
+          <FieldErrorInput
+            label="Shipment code"
+            required
+            error={errors.shipment_code?.message}
+            {...register("shipment_code")}
+          />
 
-        <FieldErrorInput
-          label="Shipping cost"
-          type="number"
-          step="0.01"
-          error={errors.shipping_cost?.message}
-          {...register("shipping_cost")}
-        />
+          <FieldErrorSelect
+            label="Method"
+            error={errors.method?.message}
+            {...register("method")}
+          >
+            <option value="luggage">Luggage</option>
+            <option value="courier">Courier</option>
+            <option value="cargo">Cargo</option>
+          </FieldErrorSelect>
 
-        <FieldErrorInput
-          label="Customs cost"
-          type="number"
-          step="0.01"
-          error={errors.customs_cost?.message}
-          {...register("customs_cost")}
-        />
+          <FieldErrorInput
+            label="Shipping cost"
+            type="number"
+            step="0.01"
+            error={errors.shipping_cost?.message}
+            {...register("shipping_cost")}
+          />
 
-        <FieldErrorInput
-          label="Carrier name"
-          placeholder="DHL, luggage, cargo agent..."
-          error={errors.carrier_name?.message}
-          {...register("carrier_name")}
-        />
+          <FieldErrorInput
+            label="Customs cost"
+            type="number"
+            step="0.01"
+            error={errors.customs_cost?.message}
+            {...register("customs_cost")}
+          />
 
-        <FieldErrorInput
-          label="Sent date"
-          type="date"
-          error={errors.sent_date?.message}
-          {...register("sent_date")}
-        />
+          <FieldErrorInput
+            label="Carrier name"
+            placeholder="DHL, luggage, cargo agent..."
+            error={errors.carrier_name?.message}
+            {...register("carrier_name")}
+          />
 
-        <FieldErrorInput
-          label="Expected arrival date"
-          type="date"
-          error={errors.expected_arrival_date?.message}
-          {...register("expected_arrival_date")}
-        />
-      </div>
+          <FieldErrorInput
+            label="Sent date"
+            type="date"
+            error={errors.sent_date?.message}
+            {...register("sent_date")}
+          />
 
-      <div className="space-y-3">
-        <p className="text-sm font-medium">Items</p>
+          <FieldErrorInput
+            label="Expected arrival date"
+            type="date"
+            error={errors.expected_arrival_date?.message}
+            {...register("expected_arrival_date")}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Shipment Items
+          </p>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Attach products to this shipment
+          </h2>
+        </div>
 
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:border-0 md:p-0"
+            className="grid gap-4 rounded-[1.5rem] border border-border/60 bg-background/50 p-4 md:grid-cols-2"
           >
             <FieldErrorSelect
               label={`Product ${index + 1}`}
@@ -191,7 +209,7 @@ export function ShipmentForm({ products }: { products: Product[] }) {
           type="button"
           onClick={addItem}
           variant="outline"
-          className="mt-1 w-full sm:w-auto"
+          className="mt-1 h-11 w-full px-5 sm:w-auto"
         >
           Add item
         </Button>
@@ -201,9 +219,17 @@ export function ShipmentForm({ products }: { products: Product[] }) {
             {errors.items.message}
           </p>
         ) : null}
-      </div>
+      </section>
 
-      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <FieldErrorInput
+          label="Notes"
+          error={errors.notes?.message}
+          {...register("notes")}
+        />
+      </section>
+
+      <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
         {isPending ? "Creating shipment..." : "Create shipment"}
       </Button>
     </form>

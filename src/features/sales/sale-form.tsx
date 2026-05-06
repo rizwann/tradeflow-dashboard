@@ -73,85 +73,98 @@ export function SaleForm({ products }: { products: Product[] }) {
         }
       }}
     >
-      <FieldErrorSelect
-        label="Product"
-        required
-        error={errors.product_id?.message}
-        {...register("product_id")}
-      >
-        <option value="" disabled>
-          Select a product
-        </option>
-        {products.map((product) => (
-          <option key={product.id} value={product.id}>
-            {product.name}
-          </option>
-        ))}
-      </FieldErrorSelect>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <FieldErrorInput
-          label="Quantity sold"
-          type="number"
-          min={1}
-          required
-          error={errors.quantity?.message}
-          {...register("quantity")}
-        />
-
-        <FieldErrorInput
-          label="Unit selling price BDT"
-          type="number"
-          step="0.01"
-          min={0}
-          required
-          error={errors.unit_selling_price_bdt?.message}
-          {...register("unit_selling_price_bdt")}
-        />
-
-        <FieldErrorInput
-          label="Discount"
-          type="number"
-          step="0.01"
-          min={0}
-          error={errors.discount?.message}
-          {...register("discount")}
-        />
-
-        <FieldErrorInput
-          label="Sale date"
-          type="date"
-          required
-          error={errors.sale_date?.message}
-          {...register("sale_date")}
-        />
+      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Revenue Capture
+          </p>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Record a completed sale
+          </h2>
+        </div>
 
         <FieldErrorSelect
-          label="Payment status"
-          error={errors.payment_status?.message}
-          {...register("payment_status")}
+          label="Product"
+          required
+          error={errors.product_id?.message}
+          {...register("product_id")}
         >
-          <option value="paid">Paid</option>
-          <option value="partial">Partial</option>
-          <option value="unpaid">Unpaid</option>
+          <option value="" disabled>
+            Select a product
+          </option>
+          {products.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name}
+            </option>
+          ))}
         </FieldErrorSelect>
 
+        <div className="grid gap-4 md:grid-cols-2">
+          <FieldErrorInput
+            label="Quantity sold"
+            type="number"
+            min={1}
+            required
+            error={errors.quantity?.message}
+            {...register("quantity")}
+          />
+
+          <FieldErrorInput
+            label="Unit selling price BDT"
+            type="number"
+            step="0.01"
+            min={0}
+            required
+            error={errors.unit_selling_price_bdt?.message}
+            {...register("unit_selling_price_bdt")}
+          />
+
+          <FieldErrorInput
+            label="Discount"
+            type="number"
+            step="0.01"
+            min={0}
+            error={errors.discount?.message}
+            {...register("discount")}
+          />
+
+          <FieldErrorInput
+            label="Sale date"
+            type="date"
+            required
+            error={errors.sale_date?.message}
+            {...register("sale_date")}
+          />
+
+          <FieldErrorSelect
+            label="Payment status"
+            error={errors.payment_status?.message}
+            {...register("payment_status")}
+          >
+            <option value="paid">Paid</option>
+            <option value="partial">Partial</option>
+            <option value="unpaid">Unpaid</option>
+          </FieldErrorSelect>
+
+          <FieldErrorInput
+            label="Customer name"
+            placeholder="Optional"
+            error={errors.customer_name?.message}
+            {...register("customer_name")}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
         <FieldErrorInput
-          label="Customer name"
-          placeholder="Optional"
-          error={errors.customer_name?.message}
-          {...register("customer_name")}
+          label="Notes"
+          placeholder="Optional notes"
+          error={errors.notes?.message}
+          {...register("notes")}
         />
-      </div>
+      </section>
 
-      <FieldErrorInput
-        label="Notes"
-        placeholder="Optional notes"
-        error={errors.notes?.message}
-        {...register("notes")}
-      />
-
-      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
         {isPending ? "Recording sale..." : "Record sale"}
       </Button>
     </form>
