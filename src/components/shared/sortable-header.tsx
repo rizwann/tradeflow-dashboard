@@ -24,14 +24,19 @@ export function SortableHeader<TData, TValue>({
       type="button"
       variant="ghost"
       className={cn(
-        "h-9 rounded-lg px-2 text-sm text-muted-foreground hover:text-foreground sm:h-8",
+        "h-9 rounded-xl px-2 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground sm:h-8",
         align === "right" ? "ml-auto justify-end" : "-ml-2 sm:-ml-4",
       )}
       aria-label={`Sort by ${title}${sortState ? `, currently ${sortState}` : ""}`}
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
     >
       {title}
-      <ArrowUpDown className="ml-2 h-4 w-4 opacity-70" />
+      <ArrowUpDown
+        className={cn(
+          "ml-2 h-4 w-4 opacity-70 transition-transform",
+          sortState === "asc" ? "rotate-180" : "",
+        )}
+      />
     </Button>
   )
 }

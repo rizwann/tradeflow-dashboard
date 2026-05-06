@@ -73,8 +73,11 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
+    <Card className="border-border/60 bg-card/78">
+      <CardHeader className="pb-2">
+        <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+          Performance Overview
+        </p>
         <CardTitle>Monthly performance</CardTitle>
         <p className="text-sm text-muted-foreground">
           Revenue and BDT expenses shown as bars, with FIFO-backed gross and
@@ -86,7 +89,11 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
           <div className="h-80 min-w-[40rem] sm:h-96 sm:min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" />
+                <CartesianGrid
+                  stroke="var(--chart-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="month"
                   tick={chartAxisStyle}
@@ -113,26 +120,26 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                 />
                 <Legend
                   formatter={getSeriesLabel}
-                  wrapperStyle={{ paddingTop: 8 }}
+                  wrapperStyle={{ paddingTop: 16 }}
                 />
                 <Bar
                   dataKey="revenue"
                   name="revenue"
                   fill="var(--chart-1)"
-                  radius={[6, 6, 0, 0]}
+                  radius={[10, 10, 0, 0]}
                 />
                 <Bar
                   dataKey="expenses"
                   name="expenses"
                   fill="var(--chart-4)"
-                  radius={[6, 6, 0, 0]}
+                  radius={[10, 10, 0, 0]}
                 />
                 <Line
                   type="monotone"
                   dataKey="grossProfit"
                   name="grossProfit"
                   stroke="var(--chart-2)"
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   dot={{ r: 3, fill: "var(--chart-2)" }}
                 />
                 <Line
@@ -140,7 +147,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                   dataKey="netProfit"
                   name="netProfit"
                   stroke="var(--chart-5)"
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   dot={{ r: 3, fill: "var(--chart-5)" }}
                 />
               </ComposedChart>

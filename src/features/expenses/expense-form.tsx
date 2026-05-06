@@ -84,47 +84,58 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
         }
       }}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        <FieldErrorSelect
-          label="Expense type"
-          required
-          error={errors.type?.message}
-          {...register("type")}
-        >
-          <option value="shipping">Shipping</option>
-          <option value="customs">Customs</option>
-          <option value="packaging">Packaging</option>
-          <option value="marketing">Marketing</option>
-          <option value="delivery">Delivery</option>
-          <option value="other">Other</option>
-        </FieldErrorSelect>
+      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Expense Ledger
+          </p>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Log an operating expense
+          </h2>
+        </div>
 
-        <FieldErrorInput
-          label="Amount"
-          type="number"
-          step="0.01"
-          min={0}
-          required
-          error={errors.amount?.message}
-          {...register("amount")}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <FieldErrorSelect
+            label="Expense type"
+            required
+            error={errors.type?.message}
+            {...register("type")}
+          >
+            <option value="shipping">Shipping</option>
+            <option value="customs">Customs</option>
+            <option value="packaging">Packaging</option>
+            <option value="marketing">Marketing</option>
+            <option value="delivery">Delivery</option>
+            <option value="other">Other</option>
+          </FieldErrorSelect>
 
-        <FieldErrorSelect
-          label="Currency"
-          error={errors.currency?.message}
-          {...register("currency")}
-        >
-          <option value="BDT">BDT</option>
-          <option value="EUR">EUR</option>
-        </FieldErrorSelect>
+          <FieldErrorInput
+            label="Amount"
+            type="number"
+            step="0.01"
+            min={0}
+            required
+            error={errors.amount?.message}
+            {...register("amount")}
+          />
 
-        <FieldErrorInput
-          label="Date"
-          type="date"
-          required
-          error={errors.date?.message}
-          {...register("date")}
-        />
+          <FieldErrorSelect
+            label="Currency"
+            error={errors.currency?.message}
+            {...register("currency")}
+          >
+            <option value="BDT">BDT</option>
+            <option value="EUR">EUR</option>
+          </FieldErrorSelect>
+
+          <FieldErrorInput
+            label="Date"
+            type="date"
+            required
+            error={errors.date?.message}
+            {...register("date")}
+          />
+        </div>
 
         <div className="md:col-span-2">
           <FieldErrorSelect
@@ -141,16 +152,18 @@ export function ExpenseForm({ shipments }: ExpenseFormProps) {
             ))}
           </FieldErrorSelect>
         </div>
-      </div>
+      </section>
 
-      <FieldErrorInput
-        label="Notes"
-        placeholder="Optional notes"
-        error={errors.notes?.message}
-        {...register("notes")}
-      />
+      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+        <FieldErrorInput
+          label="Notes"
+          placeholder="Optional notes"
+          error={errors.notes?.message}
+          {...register("notes")}
+        />
+      </section>
 
-      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
         {isPending ? "Adding expense..." : "Add expense"}
       </Button>
     </form>

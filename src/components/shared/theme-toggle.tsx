@@ -53,7 +53,7 @@ export function ThemeToggle() {
         <Button
           variant="outline"
           size="icon"
-          className="h-9 w-9 rounded-xl"
+          className="h-9 w-9 rounded-2xl border-border/60 bg-card/70"
           aria-label={`Change theme. Current theme: ${selectedOption.label.toLowerCase()}`}
         >
           <SelectedIcon className="h-4 w-4" />

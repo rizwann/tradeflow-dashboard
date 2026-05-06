@@ -165,8 +165,8 @@ function DashboardTableCard(props: {
     props
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
+    <Card className="border-border/60 bg-card/78">
+      <CardHeader className="pb-2">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
@@ -530,7 +530,17 @@ export default async function DashboardPage() {
 
       <RevenueExpenseChart data={chartData} />
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            Operational Insights
+          </p>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Product movement and replenishment watchlist
+          </h2>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-3">
         <DashboardTableCard
           title="Top 5 Best-Selling Products"
           description="Ranked by total quantity sold."
@@ -598,6 +608,7 @@ export default async function DashboardPage() {
           emptyTitle="No low stock alerts"
           emptyDescription="All tracked products currently have more than 5 units available."
         />
+        </div>
       </section>
     </div>
   )
