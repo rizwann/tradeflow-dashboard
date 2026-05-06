@@ -48,26 +48,48 @@ export function MonthlyReportChart({ data }: MonthlyReportChartProps) {
         </p>
       </div>
 
-      <div className="overflow-x-auto pb-2">
-        <div className="h-64 min-w-[36rem] sm:h-72 sm:min-w-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid
-                stroke="var(--chart-grid)"
-                strokeDasharray="3 3"
-                vertical={false}
-              />
-              <XAxis dataKey="month" tick={chartAxisStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={chartAxisStyle} axisLine={false} tickLine={false} width={72} />
-              <Tooltip
-                contentStyle={chartTooltipStyle}
-                cursor={{ fill: "color-mix(in oklab, var(--accent) 26%, transparent)" }}
-                labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
-              />
-              <Bar dataKey="revenue" fill="var(--chart-1)" radius={[10, 10, 0, 0]} />
-              <Bar dataKey="expenses" fill="var(--chart-4)" radius={[10, 10, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="min-w-0 overflow-x-auto pb-2">
+        <div className="min-w-[36rem] sm:min-w-0">
+          <div className="h-[320px] min-h-[320px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid
+                  stroke="var(--chart-grid)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={chartAxisStyle}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={chartAxisStyle}
+                  axisLine={false}
+                  tickLine={false}
+                  width={72}
+                />
+                <Tooltip
+                  contentStyle={chartTooltipStyle}
+                  cursor={{
+                    fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
+                  }}
+                  labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+                />
+                <Bar
+                  dataKey="revenue"
+                  fill="var(--chart-1)"
+                  radius={[10, 10, 0, 0]}
+                />
+                <Bar
+                  dataKey="expenses"
+                  fill="var(--chart-4)"
+                  radius={[10, 10, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

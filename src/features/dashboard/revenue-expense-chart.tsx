@@ -84,74 +84,76 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
           net profit as trend lines.
         </p>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto pb-2">
-          <div className="h-80 min-w-[40rem] sm:h-96 sm:min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={data}>
-                <CartesianGrid
-                  stroke="var(--chart-grid)"
-                  strokeDasharray="3 3"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="month"
-                  tick={chartAxisStyle}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={(value: number) => formatBDT(value)}
-                  tick={chartAxisStyle}
-                  axisLine={false}
-                  tickLine={false}
-                  width={80}
-                />
-                <Tooltip
-                  contentStyle={chartTooltipStyle}
-                  cursor={{
-                    fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
-                  }}
-                  formatter={(value, name) => [
-                    formatBDT(Number(value ?? 0)),
-                    getSeriesLabel(String(name)),
-                  ]}
-                  labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
-                />
-                <Legend
-                  formatter={getSeriesLabel}
-                  wrapperStyle={{ paddingTop: 16 }}
-                />
-                <Bar
-                  dataKey="revenue"
-                  name="revenue"
-                  fill="var(--chart-1)"
-                  radius={[10, 10, 0, 0]}
-                />
-                <Bar
-                  dataKey="expenses"
-                  name="expenses"
-                  fill="var(--chart-4)"
-                  radius={[10, 10, 0, 0]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="grossProfit"
-                  name="grossProfit"
-                  stroke="var(--chart-2)"
-                  strokeWidth={3}
-                  dot={{ r: 3, fill: "var(--chart-2)" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="netProfit"
-                  name="netProfit"
-                  stroke="var(--chart-5)"
-                  strokeWidth={3}
-                  dot={{ r: 3, fill: "var(--chart-5)" }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+      <CardContent className="min-w-0">
+        <div className="min-w-0 overflow-x-auto pb-2">
+          <div className="min-w-[40rem] sm:min-w-0">
+            <div className="h-[320px] min-h-[320px] w-full min-w-0 sm:h-[384px] sm:min-h-[384px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={data}>
+                  <CartesianGrid
+                    stroke="var(--chart-grid)"
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tick={chartAxisStyle}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tickFormatter={(value: number) => formatBDT(value)}
+                    tick={chartAxisStyle}
+                    axisLine={false}
+                    tickLine={false}
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    cursor={{
+                      fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
+                    }}
+                    formatter={(value, name) => [
+                      formatBDT(Number(value ?? 0)),
+                      getSeriesLabel(String(name)),
+                    ]}
+                    labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+                  />
+                  <Legend
+                    formatter={getSeriesLabel}
+                    wrapperStyle={{ paddingTop: 16 }}
+                  />
+                  <Bar
+                    dataKey="revenue"
+                    name="revenue"
+                    fill="var(--chart-1)"
+                    radius={[10, 10, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="expenses"
+                    name="expenses"
+                    fill="var(--chart-4)"
+                    radius={[10, 10, 0, 0]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="grossProfit"
+                    name="grossProfit"
+                    stroke="var(--chart-2)"
+                    strokeWidth={3}
+                    dot={{ r: 3, fill: "var(--chart-2)" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="netProfit"
+                    name="netProfit"
+                    stroke="var(--chart-5)"
+                    strokeWidth={3}
+                    dot={{ r: 3, fill: "var(--chart-5)" }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </CardContent>
