@@ -4,6 +4,7 @@ import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
+import { ReportsExportButtons } from "@/features/reports/reports-export-buttons"
 import { ShipmentProfitTable } from "@/features/reports/shipment-profit-table"
 import { calculateProductProfit } from "@/features/reports/report-calculations"
 
@@ -296,6 +297,12 @@ export default async function ReportsPage() {
       <PageHeader
         title="Reports"
         description="Analyze FIFO profitability, shipment performance, and monthly business trends."
+        actions={
+          <ReportsExportButtons
+            productRows={productProfitRows}
+            shipmentRows={shipmentProfitRows}
+          />
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

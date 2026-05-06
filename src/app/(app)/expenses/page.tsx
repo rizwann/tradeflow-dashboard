@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
+import { ExpensesExportButton } from "@/features/expenses/expenses-export-button"
 import {
   ExpenseTable,
   type ExpenseTableRow,
@@ -69,12 +70,15 @@ export default async function ExpensesPage() {
         title="Expenses"
         description="Track operational costs related to shipments and resale."
         actions={
-          <Button asChild>
-            <Link href="/expenses/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add expense
-            </Link>
-          </Button>
+          <>
+            <ExpensesExportButton rows={expenseRows} />
+            <Button asChild>
+              <Link href="/expenses/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add expense
+              </Link>
+            </Button>
+          </>
         }
       />
 
