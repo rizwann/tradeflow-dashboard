@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/shared/data-table"
@@ -56,7 +57,14 @@ function getColumns(currentUserRole: UserRole): ColumnDef<ShipmentTableRow>[] {
     header: ({ column }) => (
       <SortableHeader column={column} title="Shipment code" />
     ),
-    cell: ({ row }) => <div className="font-medium">{row.original.shipmentCode}</div>,
+    cell: ({ row }) => (
+      <Link
+        href={`/shipments/${row.original.id}`}
+        className="font-medium transition-colors hover:text-primary"
+      >
+        {row.original.shipmentCode}
+      </Link>
+    ),
   },
   {
     accessorKey: "method",

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { PencilLine } from "lucide-react"
+import { Eye, PencilLine } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,12 @@ const columns: ColumnDef<ProductRow>[] = [
     header: ({ column }) => <SortableHeader column={column} title="Product" />,
     cell: ({ row }) => (
       <div>
-        <p className="font-medium">{row.original.name}</p>
+        <Link
+          href={`/products/${row.original.id}`}
+          className="font-medium transition-colors hover:text-primary"
+        >
+          {row.original.name}
+        </Link>
         <p className="text-xs text-muted-foreground">{row.original.sku}</p>
       </div>
     ),
@@ -90,7 +95,20 @@ const columns: ColumnDef<ProductRow>[] = [
     header: "Actions",
     enableSorting: false,
     cell: ({ row }) => (
-      <div className="text-right">
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full border border-border/60 bg-background/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+        >
+          <Link
+            href={`/products/${row.original.id}`}
+            aria-label={`View product ${row.original.name}`}
+          >
+            <Eye className="h-4 w-4" />
+          </Link>
+        </Button>
         <Button
           asChild
           variant="ghost"
