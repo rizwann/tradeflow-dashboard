@@ -11,6 +11,7 @@ import type { z } from "zod"
 import {
   createShipment,
   type ShipmentActionState,
+  updateShipment,
 } from "./shipment-actions"
 import {
   shipmentFormSchema,
@@ -28,10 +29,39 @@ type Product = {
   name: string
 }
 
-export function ShipmentForm({ products }: { products: Product[] }) {
+type ShipmentFormMode = "create" | "edit"
+
+type EditableShipment = {
+  id: string
+  shipment_code: string
+  carrier_name?: string | null
+  method: "luggage" | "courier" | "cargo"
+  sent_date?: string | null
+  expected_arrival_date?: string | null
+  shipping_cost: number
+  customs_cost: number
+  notes?: string | null
+  items: Array<{
+    product_id: string
+    quantity: number
+  }>
+}
+
+type ShipmentFormProps = {
+  mode: ShipmentFormMode
+  products: Product[]
+  shipment?: EditableShipment
+}
+
+export function ShipmentForm({
+  mode,
+  products,
+  shipment,
+}: ShipmentFormProps) {
   const router = useRouter()
+  const action = mode === "edit" ? updateShipment : createShipment
   const [state, formAction, isPending] = useActionState(
-    createShipment,
+    action,
     initialState,
   )
   const {
@@ -46,23 +76,26 @@ export function ShipmentForm({ products }: { products: Product[] }) {
   >({
     resolver: zodResolver(shipmentFormSchema),
     defaultValues: {
-      shipment_code: "",
-      carrier_name: "",
-      method: "luggage",
-      sent_date: "",
-      expected_arrival_date: "",
-      shipping_cost: 0,
-      customs_cost: 0,
-      notes: undefined,
-      items: [
-        {
-          product_id: products[0]?.id ?? "",
-          quantity: 1,
-        },
-      ],
+      shipment_code: shipment?.shipment_code ?? "",
+      carrier_name: shipment?.carrier_name ?? "",
+      method: shipment?.method ?? "luggage",
+      sent_date: shipment?.sent_date ?? "",
+      expected_arrival_date: shipment?.expected_arrival_date ?? "",
+      shipping_cost: shipment?.shipping_cost ?? 0,
+      customs_cost: shipment?.customs_cost ?? 0,
+      notes: shipment?.notes ?? "",
+      items:
+        shipment?.items.length
+          ? shipment.items
+          : [
+              {
+                product_id: products[0]?.id ?? "",
+                quantity: 1,
+              },
+            ],
     },
   })
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "items",
   })
@@ -99,13 +132,19 @@ export function ShipmentForm({ products }: { products: Product[] }) {
         }
       }}
     >
+      {mode === "edit" && shipment ? (
+        <input type="hidden" name="id" value={shipment.id} />
+      ) : null}
+
       <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             Shipment Setup
           </p>
           <h2 className="text-lg font-semibold tracking-tight">
-            Create a new inbound shipment
+            {mode === "edit"
+              ? "Update a draft inbound shipment"
+              : "Create a new inbound shipment"}
           </h2>
         </div>
 
@@ -202,6 +241,19 @@ export function ShipmentForm({ products }: { products: Product[] }) {
               error={errors.items?.[index]?.quantity?.message}
               {...register(`items.${index}.quantity`)}
             />
+
+            <div className="md:col-span-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                Remove item
+              </Button>
+            </div>
           </div>
         ))}
 
@@ -230,7 +282,13 @@ export function ShipmentForm({ products }: { products: Product[] }) {
       </section>
 
       <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
-        {isPending ? "Creating shipment..." : "Create shipment"}
+        {isPending
+          ? mode === "edit"
+            ? "Updating shipment..."
+            : "Creating shipment..."
+          : mode === "edit"
+            ? "Update shipment"
+            : "Create shipment"}
       </Button>
     </form>
   )

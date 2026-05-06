@@ -4,7 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/shared/data-table"
 import { SortableHeader } from "@/components/shared/sortable-header"
-import { ShipmentStatusActions } from "@/features/shipments/shipment-status-actions"
+import { ShipmentTableActions } from "@/features/shipments/shipment-table-actions"
+import type { UserRole } from "@/types/app"
 
 export type ShipmentStatus =
   | "draft"
@@ -48,7 +49,8 @@ function formatDate(value: string) {
   }).format(date)
 }
 
-const columns: ColumnDef<ShipmentTableRow>[] = [
+function getColumns(currentUserRole: UserRole): ColumnDef<ShipmentTableRow>[] {
+  return [
   {
     accessorKey: "shipmentCode",
     header: ({ column }) => (
@@ -96,22 +98,29 @@ const columns: ColumnDef<ShipmentTableRow>[] = [
     header: "Actions",
     enableSorting: false,
     cell: ({ row }) => (
-      <ShipmentStatusActions
+      <ShipmentTableActions
         shipmentId={row.original.id}
+        shipmentCode={row.original.shipmentCode}
         status={row.original.status}
+        currentUserRole={currentUserRole}
       />
     ),
   },
 ]
+}
 
 type ShipmentTableProps = {
   shipments: ShipmentTableRow[]
+  currentUserRole: UserRole
 }
 
-export function ShipmentTable({ shipments }: ShipmentTableProps) {
+export function ShipmentTable({
+  shipments,
+  currentUserRole,
+}: ShipmentTableProps) {
   return (
     <DataTable
-      columns={columns}
+      columns={getColumns(currentUserRole)}
       data={shipments}
       searchKey="shipmentCode"
       searchPlaceholder="Search shipments by code, method, or status..."

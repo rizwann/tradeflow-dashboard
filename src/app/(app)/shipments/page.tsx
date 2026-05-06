@@ -8,6 +8,7 @@ import {
   type ShipmentStatus,
   type ShipmentTableRow,
 } from "@/features/shipments/shipment-table"
+import { getCurrentUserProfile } from "@/lib/auth"
 
 type ShipmentsPageProps = {
   searchParams: Promise<{
@@ -29,6 +30,7 @@ export default async function ShipmentsPage({
   searchParams,
 }: ShipmentsPageProps) {
   const params = await searchParams
+  const session = await getCurrentUserProfile()
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -105,7 +107,10 @@ export default async function ShipmentsPage({
         </div>
       ) : null}
 
-      <ShipmentTable shipments={shipments} />
+      <ShipmentTable
+        shipments={shipments}
+        currentUserRole={session.profile.role}
+      />
     </div>
   )
 }
