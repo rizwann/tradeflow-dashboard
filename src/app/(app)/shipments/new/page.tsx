@@ -11,7 +11,7 @@ export default async function NewShipmentPage() {
       <h1 className="text-3xl font-bold">Create shipment</h1>
 
       <div className="border p-6 rounded-xl bg-background">
-        <ShipmentForm products={products ?? []} />
+        <ShipmentForm mode="create" products={products ?? []} />
       </div>
     </div>
   )
