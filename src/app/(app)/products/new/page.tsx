@@ -14,7 +14,7 @@ export default async function NewProductPage() {
       </div>
 
       <div className="rounded-xl border bg-background p-6 shadow-sm">
-        <ProductForm />
+        <ProductForm mode="create" />
       </div>
     </div>
   )

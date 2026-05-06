@@ -38,7 +38,7 @@ export function ShipmentProfitTable({ rows }: ShipmentProfitTableProps) {
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
-      <Table className="min-w-[42rem]">
+      <Table className="min-w-2xl">
         <TableHeader>
           <TableRow>
             <TableHead>Shipment</TableHead>
