@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
+import { PurchasesExportButton } from "@/features/purchases/purchases-export-button"
 import {
   PurchaseTable,
   type PurchaseTableRow,
@@ -16,6 +17,7 @@ type PurchaseRecord = {
   exchange_rate: number
   total_cost_bdt: number
   purchase_date: string
+  notes: string | null
   products: {
     name: string
   } | null
@@ -28,7 +30,7 @@ export default async function PurchasesPage() {
   const { data } = await supabase
     .from("purchases")
     .select(
-      "id, quantity, unit_cost_eur, exchange_rate, total_cost_bdt, purchase_date, products(name)",
+      "id, quantity, unit_cost_eur, exchange_rate, total_cost_bdt, purchase_date, notes, products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<PurchaseRecord[]>()
@@ -44,18 +46,32 @@ export default async function PurchasesPage() {
       purchaseDate: purchase.purchase_date,
     })) ?? []
 
+  const purchaseExportRows =
+    data?.map((purchase) => ({
+      productName: purchase.products?.name ?? "Unknown",
+      quantity: purchase.quantity,
+      unit_cost_eur: purchase.unit_cost_eur,
+      exchange_rate: purchase.exchange_rate,
+      total_cost_bdt: purchase.total_cost_bdt,
+      purchase_date: purchase.purchase_date,
+      notes: purchase.notes,
+    })) ?? []
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Purchases"
         description="Track purchase orders, quantities, and supplier costs."
         actions={
-          <Button asChild>
-            <Link href="/purchases/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add purchase
-            </Link>
-          </Button>
+          <>
+            <PurchasesExportButton rows={purchaseExportRows} />
+            <Button asChild>
+              <Link href="/purchases/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add purchase
+              </Link>
+            </Button>
+          </>
         }
       />
 

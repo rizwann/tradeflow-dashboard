@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { SaleTable, type SaleTableRow } from "@/features/sales/sale-table"
+import { SalesExportButton } from "@/features/sales/sales-export-button"
 import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ type SaleRow = {
   status: "active" | "voided"
   voided_at: string | null
   void_reason: string | null
+  customer_name: string | null
   products: {
     name: string
   } | null
@@ -37,7 +39,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
   const { data: sales, error } = await supabase
     .from("sales")
     .select(
-      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, products(name)",
+      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_name, products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<SaleRow[]>()
@@ -65,18 +67,37 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
     }
   })
 
+  const saleExportRows = (sales ?? []).map((sale) => {
+    const discount = Number(sale.discount ?? 0)
+
+    return {
+      productName: sale.products?.name ?? "Unknown product",
+      quantity: sale.quantity,
+      unit_selling_price_bdt: sale.unit_selling_price_bdt,
+      discount,
+      revenue: sale.quantity * sale.unit_selling_price_bdt - discount,
+      sale_date: sale.sale_date,
+      payment_status: sale.payment_status,
+      status: sale.status,
+      customer_name: sale.customer_name,
+    }
+  })
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Sales"
         description="Record Bangladesh-side sales and customer payments."
         actions={
-          <Button asChild>
-            <Link href="/sales/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Record sale
-            </Link>
-          </Button>
+          <>
+            <SalesExportButton rows={saleExportRows} />
+            <Button asChild>
+              <Link href="/sales/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Record sale
+              </Link>
+            </Button>
+          </>
         }
       />
 

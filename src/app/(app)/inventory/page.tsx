@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ErrorState } from "@/components/shared/error-state"
 import { createClient } from "@/lib/supabase/server"
 import { PageHeader } from "@/components/shared/page-header"
+import { InventoryExportButton } from "@/features/inventory/inventory-export-button"
 import {
   InventoryTable,
   type InventoryRow,
@@ -77,9 +78,12 @@ export default async function InventoryPage() {
         title="Inventory"
         description="Track stock across Germany, in transit, and Bangladesh."
         actions={
-          <Button asChild>
-            <Link href="/inventory/adjust">Adjust inventory</Link>
-          </Button>
+          <>
+            <InventoryExportButton rows={rows} />
+            <Button asChild>
+              <Link href="/inventory/adjust">Adjust inventory</Link>
+            </Button>
+          </>
         }
       />
 

@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
+import { ShipmentsExportButton } from "@/features/shipments/shipments-export-button"
 import {
   ShipmentTable,
   type ShipmentStatus,
@@ -19,10 +20,15 @@ type ShipmentsPageProps = {
 type ShipmentRecord = {
   id: string
   shipment_code: string
+  carrier_name: string | null
   method: "luggage" | "courier" | "cargo"
   status: ShipmentStatus
+  sent_date: string | null
+  expected_arrival_date: string | null
+  received_date: string | null
   shipping_cost: number
   customs_cost: number
+  notes: string | null
   created_at: string
 }
 
@@ -36,7 +42,7 @@ export default async function ShipmentsPage({
   const { data } = await supabase
     .from("shipments")
     .select(
-      "id, shipment_code, method, status, shipping_cost, customs_cost, created_at",
+      "id, shipment_code, carrier_name, method, status, sent_date, expected_arrival_date, received_date, shipping_cost, customs_cost, notes, created_at",
     )
     .order("created_at", { ascending: false })
     .returns<ShipmentRecord[]>()
@@ -58,12 +64,15 @@ export default async function ShipmentsPage({
         title="Shipments"
         description="Manage shipment status and inventory movement from Germany to Bangladesh."
         actions={
-          <Button asChild>
-            <Link href="/shipments/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Create shipment
-            </Link>
-          </Button>
+          <>
+            <ShipmentsExportButton rows={data ?? []} />
+            <Button asChild>
+              <Link href="/shipments/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Create shipment
+              </Link>
+            </Button>
+          </>
         }
       />
       {params.error === "insufficient-stock" ? (
