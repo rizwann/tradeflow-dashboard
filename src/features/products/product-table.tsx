@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { PencilLine } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
@@ -81,6 +82,28 @@ const columns: ColumnDef<ProductRow>[] = [
     cell: ({ row }) => (
       <div className="text-right">
         {formatBDT(row.original.suggested_selling_price_bdt)}
+      </div>
+    ),
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <div className="text-right">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full border border-border/60 bg-background/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+        >
+          <Link
+            href={`/products/${row.original.id}/edit`}
+            aria-label={`Edit product ${row.original.name}`}
+          >
+            <PencilLine className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     ),
   },

@@ -7,7 +7,11 @@ import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
-import { createProduct, type ProductActionState } from "./product-actions"
+import {
+  createProduct,
+  type ProductActionState,
+  updateProduct,
+} from "./product-actions"
 import { productSchema, type ProductFormValues } from "./product-schema"
 
 import { Button } from "@/components/ui/button"
@@ -18,11 +22,23 @@ const initialState: ProductActionState = {
   message: "",
 }
 
-export function ProductForm() {
+type ProductFormMode = "create" | "edit"
+
+type EditableProduct = ProductFormValues & {
+  id: string
+}
+
+type ProductFormProps = {
+  mode: ProductFormMode
+  product?: EditableProduct
+}
+
+export function ProductForm({ mode, product }: ProductFormProps) {
   const router = useRouter()
+  const action = mode === "edit" ? updateProduct : createProduct
 
   const [state, formAction, isPending] = useActionState(
-    createProduct,
+    action,
     initialState,
   )
 
@@ -32,15 +48,16 @@ export function ProductForm() {
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: "",
-      brand: "",
-      category: "",
-      sku: "",
-      purchase_price_eur: 0,
-      exchange_rate: 130,
-      suggested_selling_price_bdt: 0,
-      image_url: "",
-      notes: "",
+      name: product?.name ?? "",
+      brand: product?.brand ?? "",
+      category: product?.category ?? "",
+      sku: product?.sku ?? "",
+      purchase_price_eur: product?.purchase_price_eur ?? 0,
+      exchange_rate: product?.exchange_rate ?? 130,
+      suggested_selling_price_bdt:
+        product?.suggested_selling_price_bdt ?? 0,
+      image_url: product?.image_url ?? "",
+      notes: product?.notes ?? "",
     },
   })
 
@@ -58,6 +75,10 @@ export function ProductForm() {
 
   return (
     <form action={formAction} className="space-y-6">
+      {mode === "edit" && product ? (
+        <input type="hidden" name="id" value={product.id} />
+      ) : null}
+
       <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
         <div className="mb-5 space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
@@ -140,7 +161,13 @@ export function ProductForm() {
       </section>
 
       <Button type="submit" disabled={isPending} className="h-11 w-full px-5 sm:w-auto">
-        {isPending ? "Saving..." : "Save product"}
+        {isPending
+          ? mode === "edit"
+            ? "Updating..."
+            : "Saving..."
+          : mode === "edit"
+            ? "Update product"
+            : "Save product"}
       </Button>
     </form>
   )
