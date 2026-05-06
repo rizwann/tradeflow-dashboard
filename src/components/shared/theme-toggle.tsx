@@ -1,5 +1,6 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { Laptop, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
@@ -32,13 +33,25 @@ const themeOptions = [
   },
 ] as const
 
+function subscribe() {
+  return () => {}
+}
+
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme()
-  const selectedTheme = theme ?? "system"
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  )
+  const selectedTheme = mounted ? theme ?? "system" : "system"
   const selectedOption =
     themeOptions.find((option) => option.value === selectedTheme) ??
     themeOptions[2]
   const SelectedIcon = selectedOption.icon
+  const triggerLabel = mounted
+    ? `Change theme. Current theme: ${selectedOption.label.toLowerCase()}`
+    : "Change theme"
 
   return (
     <DropdownMenu>
@@ -47,7 +60,7 @@ export function ThemeToggle() {
           variant="outline"
           size="icon"
           className="h-9 w-9 rounded-2xl border-border/60 bg-card/70"
-          aria-label={`Change theme. Current theme: ${selectedOption.label.toLowerCase()}`}
+          aria-label={triggerLabel}
         >
           <SelectedIcon className="h-4 w-4" />
           <span className="sr-only">Change theme</span>
