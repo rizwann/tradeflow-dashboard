@@ -91,6 +91,8 @@ type MonthlyMetric = {
   netProfit: number
 }
 
+type ChartMetric = Omit<MonthlyMetric, "sortKey">
+
 function formatBDT(value: number) {
   return `৳${Math.round(value).toLocaleString("en-US")}`
 }
@@ -476,7 +478,13 @@ export default async function DashboardPage() {
       netProfit: entry.grossProfit - entry.expenses,
     }))
     .sort((left, right) => left.sortKey.localeCompare(right.sortKey))
-    .map(({ sortKey: _sortKey, ...entry }) => entry)
+    .map<ChartMetric>(({ month, revenue, expenses, grossProfit, netProfit }) => ({
+      month,
+      revenue,
+      expenses,
+      grossProfit,
+      netProfit,
+    }))
 
   return (
     <div className="min-w-0 space-y-8">

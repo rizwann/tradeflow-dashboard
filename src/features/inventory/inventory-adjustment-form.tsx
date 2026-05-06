@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import type { z } from "zod"
@@ -50,9 +50,9 @@ export function InventoryAdjustmentForm({
     initialState,
   )
   const {
+    control,
     register,
     trigger,
-    watch,
     formState: { errors },
   } = useForm<
     z.input<typeof inventoryAdjustmentSchema>,
@@ -69,7 +69,10 @@ export function InventoryAdjustmentForm({
     },
   })
 
-  const selectedLocation = watch("location")
+  const selectedLocation = useWatch({
+    control,
+    name: "location",
+  })
 
   useEffect(() => {
     if (!state.message) return
