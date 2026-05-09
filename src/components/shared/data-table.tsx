@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { useState } from "react"
+import { Search } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import {
@@ -68,18 +69,25 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {searchKey ? (
-        <div className="rounded-[1.5rem] border border-border/60 bg-card/60 p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur-xl">
-          <Input
-            placeholder={searchPlaceholder}
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            aria-label={searchPlaceholder}
-            className="w-full sm:max-w-sm"
-          />
+        <div className="surface-panel-subtle flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={globalFilter ?? ""}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              aria-label={searchPlaceholder}
+              className="w-full pl-10"
+            />
+          </div>
+
+          <p className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
+            {table.getFilteredRowModel().rows.length} rows
+          </p>
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+      <div className="surface-panel overflow-hidden">
         <div className="overflow-x-auto">
           <Table className={tableClassName}>
             <TableHeader>
@@ -117,13 +125,13 @@ export function DataTable<TData, TValue>({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-36 px-6 text-center"
+                    className="h-40 px-6 text-center"
                   >
-                    <div className="space-y-1.5">
-                      <p className="font-semibold tracking-tight">
+                    <div className="space-y-2">
+                      <p className="font-semibold tracking-[-0.02em]">
                         No matching results
                       </p>
-                      <p className="text-sm leading-6 text-muted-foreground">
+                      <p className="mx-auto max-w-md text-sm leading-6 text-muted-foreground/95">
                         {hasSearchQuery
                           ? "Try a different search term or clear the current filter."
                           : "There are no rows to display in the current view."}

@@ -173,6 +173,7 @@ function DashboardTableCard(props: {
   return (
     <Card className="border-border/60 bg-card/78">
       <CardHeader className="pb-2">
+        <p className="eyebrow-label">Operational Insight</p>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
@@ -486,14 +487,26 @@ export default async function DashboardPage() {
       netProfit,
     }))
 
+  const leadingRevenueProduct = topBestSellingProducts[0]
+  const leadingProfitProduct = topProfitableProducts[0]
+  const lowStockCount = lowStockAlerts.length
+
   return (
-    <div className="min-w-0 space-y-8">
+    <div className="min-w-0 space-y-10">
       <PageHeader
         title="Dashboard"
         description="Business-ready overview of revenue, FIFO profitability, inventory health, and product performance."
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <p className="eyebrow-label">Financial Snapshot</p>
+          <h2 className="text-xl font-semibold tracking-[-0.03em]">
+            Core revenue and margin signals
+          </h2>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         <MetricCard
           title="Total Revenue"
           value={formatBDT(totalRevenue)}
@@ -519,39 +532,100 @@ export default async function DashboardPage() {
           value={formatPercent(profitMargin)}
           description="Gross profit as share of revenue"
         />
+        </div>
       </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Germany Stock"
-          value={formatQuantity(germanyStock)}
-          description={formatBDT(germanyInventoryValue)}
-        />
-        <MetricCard
-          title="In Transit Stock"
-          value={formatQuantity(inTransitStock)}
-          description={`${formatBDT(inTransitInventoryValue)} estimated value`}
-        />
-        <MetricCard
-          title="Bangladesh Stock"
-          value={formatQuantity(bangladeshStock)}
-          description={formatBDT(bangladeshInventoryValue)}
-        />
-        <MetricCard
-          title="Inventory Value"
-          value={formatBDT(totalInventoryValue)}
-          description="Germany + in transit estimate + Bangladesh FIFO value"
-        />
-      </section>
-
-      <RevenueExpenseChart data={chartData} />
 
       <section className="space-y-4">
         <div className="space-y-1">
-          <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+          <p className="eyebrow-label">Inventory Pulse</p>
+          <h2 className="text-xl font-semibold tracking-[-0.03em]">
+            Stock position across operating locations
+          </h2>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            title="Germany Stock"
+            value={formatQuantity(germanyStock)}
+            description={formatBDT(germanyInventoryValue)}
+          />
+          <MetricCard
+            title="In Transit Stock"
+            value={formatQuantity(inTransitStock)}
+            description={`${formatBDT(inTransitInventoryValue)} estimated value`}
+          />
+          <MetricCard
+            title="Bangladesh Stock"
+            value={formatQuantity(bangladeshStock)}
+            description={formatBDT(bangladeshInventoryValue)}
+          />
+          <MetricCard
+            title="Inventory Value"
+            value={formatBDT(totalInventoryValue)}
+            description="Germany + in transit estimate + Bangladesh FIFO value"
+          />
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+        <RevenueExpenseChart data={chartData} />
+
+        <Card className="h-full border-border/60 bg-card/76">
+          <CardHeader className="pb-3">
+            <p className="eyebrow-label">Workspace Pulse</p>
+            <CardTitle>What stands out this period</CardTitle>
+            <CardDescription>
+              High-signal operational cues pulled from the latest activity.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="surface-tile px-4 py-4">
+              <p className="eyebrow-label">Top Revenue Driver</p>
+              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                {leadingRevenueProduct?.productName ?? "No sales yet"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground/95">
+                {leadingRevenueProduct
+                  ? `${formatQuantity(leadingRevenueProduct.quantitySold)} units · ${formatBDT(leadingRevenueProduct.revenue)} revenue`
+                  : "Record sales to surface your leading product."}
+              </p>
+            </div>
+
+            <div className="surface-tile px-4 py-4">
+              <p className="eyebrow-label">Top Profit Contributor</p>
+              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                {leadingProfitProduct?.productName ?? "No FIFO data yet"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground/95">
+                {leadingProfitProduct
+                  ? `${formatBDT(leadingProfitProduct.grossProfit)} gross profit across ${formatQuantity(leadingProfitProduct.quantitySold)} units`
+                  : "Complete intake and sales to calculate FIFO-backed profitability."}
+              </p>
+            </div>
+
+            <div className="surface-tile px-4 py-4">
+              <p className="eyebrow-label">Replenishment Watch</p>
+              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                {lowStockCount === 0
+                  ? "All products look healthy"
+                  : `${formatQuantity(lowStockCount)} products need attention`}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground/95">
+                {lowStockCount === 0
+                  ? "No products are currently at five units or below."
+                  : "Use the low-stock insight table below to prioritize replenishment."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <p className="eyebrow-label">
             Operational Insights
           </p>
-          <h2 className="text-xl font-semibold tracking-tight">
+          <h2 className="text-xl font-semibold tracking-[-0.03em]">
             Product movement and replenishment watchlist
           </h2>
         </div>

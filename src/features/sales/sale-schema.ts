@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const saleSchema = z.object({
-  product_id: z.string().uuid(),
+  product_id: z.string(),
   quantity: z.coerce.number().min(1),
   unit_selling_price_bdt: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),

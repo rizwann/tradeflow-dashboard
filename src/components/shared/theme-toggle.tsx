@@ -59,7 +59,7 @@ export function ThemeToggle() {
         <Button
           variant="outline"
           size="icon"
-          className="h-9 w-9 rounded-2xl border-border/60 bg-card/70"
+          className="h-9 w-9 rounded-[1.1rem] border-border/60 bg-card/72"
           aria-label={triggerLabel}
         >
           <SelectedIcon className="h-4 w-4" />
@@ -67,7 +67,7 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup

@@ -81,7 +81,7 @@ export function PurchaseForm({ products }: { products: Product[] }) {
         }
       }}
     >
-      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+      <section className="surface-panel space-y-5 rounded-[1.75rem] bg-card/72 p-5 sm:p-6">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             Procurement
@@ -143,7 +143,7 @@ export function PurchaseForm({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+      <section className="surface-panel rounded-[1.75rem] bg-card/72 p-5 sm:p-6">
         <FieldErrorInput
           label="Notes"
           error={errors.notes?.message}
