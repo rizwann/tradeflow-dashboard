@@ -36,6 +36,94 @@ function formatSaleStatus(status: SaleTableRow["status"]) {
   return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
+function formatDate(value: string) {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date)
+}
+
+function SaleMobileCard({
+  sale,
+  currentUserId,
+  currentUserRole,
+}: {
+  sale: SaleTableRow
+  currentUserId: string
+  currentUserRole: UserRole
+}) {
+  return (
+    <div className="surface-panel-subtle rounded-[1.45rem] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-semibold tracking-[-0.02em]">{sale.productName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatDate(sale.saleDate)}
+          </p>
+        </div>
+        <Badge variant={sale.status === "voided" ? "secondary" : "outline"}>
+          {formatSaleStatus(sale.status)}
+        </Badge>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Quantity
+          </p>
+          <p className="mt-2 text-sm font-semibold">{sale.quantity}</p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Revenue
+          </p>
+          <p className="mt-2 text-sm font-semibold">{formatBDT(sale.revenue)}</p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Payment
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {formatPaymentStatus(sale.paymentStatus)}
+          </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Unit Price
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {formatBDT(sale.unitSellingPriceBdt)}
+          </p>
+        </div>
+      </div>
+
+      {sale.status === "voided" && sale.voidReason ? (
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Reason: {sale.voidReason}
+        </p>
+      ) : null}
+
+      <div className="mt-4">
+        <SaleTableActions
+          saleId={sale.id}
+          saleStatus={sale.status}
+          productName={sale.productName}
+          soldBy={sale.soldBy}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
+        />
+      </div>
+    </div>
+  )
+}
+
 function getColumns(
   currentUserId: string,
   currentUserRole: UserRole,
@@ -104,6 +192,7 @@ function getColumns(
   {
     accessorKey: "saleDate",
     header: ({ column }) => <SortableHeader column={column} title="Sale date" />,
+    cell: ({ row }) => formatDate(row.original.saleDate),
   },
   {
     id: "actions",
@@ -142,6 +231,13 @@ export function SaleTable({
       searchPlaceholder="Search sales by product or payment status..."
       emptyTitle="No sales yet"
       emptyDescription="Record your first sale after receiving inventory in Bangladesh."
+      mobileCardRenderer={(sale) => (
+        <SaleMobileCard
+          sale={sale}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
+        />
+      )}
     />
   )
 }

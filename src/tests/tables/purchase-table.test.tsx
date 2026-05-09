@@ -20,8 +20,8 @@ describe("PurchaseTable", () => {
       />,
     )
 
-    expect(screen.getByText("Soap")).toBeInTheDocument()
-    expect(screen.getByText("€4.50")).toBeInTheDocument()
-    expect(screen.getByText("৳1,170")).toBeInTheDocument()
+    expect(screen.getAllByText("Soap").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("€4.50").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("৳1,170").length).toBeGreaterThan(0)
   })
 })

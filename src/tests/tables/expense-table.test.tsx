@@ -42,8 +42,8 @@ describe("ExpenseTable", () => {
       />,
     )
 
-    expect(screen.getByLabelText(/edit shipping expense/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/delete shipping expense/i)).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/edit shipping expense/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByLabelText(/delete shipping expense/i).length).toBeGreaterThan(0)
   })
 
   it("hides delete for partner and keeps own edit", () => {
@@ -55,7 +55,7 @@ describe("ExpenseTable", () => {
       />,
     )
 
-    expect(screen.getByLabelText(/edit shipping expense/i)).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/edit shipping expense/i).length).toBeGreaterThan(0)
     expect(screen.queryByLabelText(/delete shipping expense/i)).not.toBeInTheDocument()
   })
 })

@@ -28,6 +28,88 @@ function formatBDT(value: number) {
   return `৳${Math.round(Number(value)).toLocaleString("en-US")}`
 }
 
+function ProductMobileCard({ product }: { product: ProductRow }) {
+  return (
+    <div className="surface-panel-subtle rounded-[1.45rem] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link
+            href={`/products/${product.id}`}
+            className="block font-semibold tracking-[-0.02em] transition-colors hover:text-primary"
+          >
+            {product.name}
+          </Link>
+          <p className="mt-1 text-xs text-muted-foreground">{product.sku}</p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full border border-border/60 bg-background/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.08)]"
+          >
+            <Link
+              href={`/products/${product.id}`}
+              aria-label={`View product ${product.name}`}
+            >
+              <Eye className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full border border-border/60 bg-background/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.08)]"
+          >
+            <Link
+              href={`/products/${product.id}/edit`}
+              aria-label={`Edit product ${product.name}`}
+            >
+              <PencilLine className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Brand / Category
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {product.brand} · {product.category}
+          </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Cost BDT
+          </p>
+          <p className="mt-2 text-sm font-semibold">
+            {formatBDT(product.purchase_price_bdt)}
+          </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Cost EUR
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {formatEUR(product.purchase_price_eur)}
+          </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Sell BDT
+          </p>
+          <p className="mt-2 text-sm font-semibold">
+            {formatBDT(product.suggested_selling_price_bdt)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const columns: ColumnDef<ProductRow>[] = [
   {
     accessorKey: "name",
@@ -154,6 +236,7 @@ export function ProductTable({ products }: ProductTableProps) {
       searchPlaceholder="Search products by name, SKU, brand, or category..."
       emptyTitle="No products found"
       emptyDescription="Try adjusting your search."
+      mobileCardRenderer={(product) => <ProductMobileCard product={product} />}
     />
   )
 }

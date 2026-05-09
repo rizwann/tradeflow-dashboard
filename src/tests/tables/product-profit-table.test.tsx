@@ -20,8 +20,8 @@ describe("ProductProfitTable", () => {
       />,
     )
 
-    expect(screen.getByText("Soap")).toBeInTheDocument()
-    expect(screen.getByText("30.0%")).toBeInTheDocument()
+    expect(screen.getAllByText("Soap").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("30.0%").length).toBeGreaterThan(0)
   })
 
   it("renders empty state", () => {

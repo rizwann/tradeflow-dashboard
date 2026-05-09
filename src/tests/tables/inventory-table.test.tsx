@@ -20,7 +20,7 @@ describe("InventoryTable", () => {
       />,
     )
 
-    expect(screen.getByText("Soap")).toBeInTheDocument()
-    expect(screen.getByText("Healthy")).toBeInTheDocument()
+    expect(screen.getAllByText("Soap").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Healthy").length).toBeGreaterThan(0)
   })
 })

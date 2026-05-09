@@ -74,4 +74,33 @@ describe("DataTable", () => {
     })
     expect(screen.getByText("No matching results")).toBeInTheDocument()
   })
+
+  it("renders mobile cards from the filtered row model when a renderer is provided", () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={rows}
+        searchKey="name"
+        searchPlaceholder="Search rows..."
+        mobileCardRenderer={(row) => (
+          <article aria-label={`mobile-card-${row.name}`}>{row.name}</article>
+        )}
+      />,
+    )
+
+    expect(
+      screen.getByLabelText("mobile-card-Soap"),
+    ).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search rows..." }), {
+      target: { value: "Shampoo" },
+    })
+
+    expect(
+      screen.queryByLabelText("mobile-card-Soap"),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByLabelText("mobile-card-Shampoo"),
+    ).toBeInTheDocument()
+  })
 })
