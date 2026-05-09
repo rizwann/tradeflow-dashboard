@@ -136,7 +136,7 @@ export function ShipmentForm({
         <input type="hidden" name="id" value={shipment.id} />
       ) : null}
 
-      <section className="space-y-5 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+      <section className="surface-panel space-y-5 rounded-[1.75rem] bg-card/72 p-5 sm:p-6">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             Shipment Setup
@@ -205,7 +205,7 @@ export function ShipmentForm({
         </div>
       </section>
 
-      <section className="space-y-4 rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+      <section className="surface-panel space-y-4 rounded-[1.75rem] bg-card/72 p-5 sm:p-6">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             Shipment Items
@@ -218,7 +218,7 @@ export function ShipmentForm({
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="grid gap-4 rounded-[1.5rem] border border-border/60 bg-background/50 p-4 md:grid-cols-2"
+            className="surface-panel-subtle grid gap-4 rounded-[1.5rem] p-4 md:grid-cols-2"
           >
             <FieldErrorSelect
               label={`Product ${index + 1}`}
@@ -273,7 +273,7 @@ export function ShipmentForm({
         ) : null}
       </section>
 
-      <section className="rounded-[1.75rem] border border-border/60 bg-card/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6">
+      <section className="surface-panel rounded-[1.75rem] bg-card/72 p-5 sm:p-6">
         <FieldErrorInput
           label="Notes"
           error={errors.notes?.message}

@@ -23,14 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { requireAdmin } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 
@@ -259,7 +251,7 @@ export default async function ProductDetailPage({
   const stockStatus = getInventoryStatus(totalQuantity)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         title={product.name}
         description={`${product.brand} · ${product.category} · SKU ${product.sku}`}
@@ -286,7 +278,7 @@ export default async function ProductDetailPage({
           <CardContent className="px-0">
             <div className="grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
               <div className="px-5 pb-5 lg:border-r lg:border-border/60 lg:px-0 lg:pb-0">
-                <div className="mx-5 overflow-hidden rounded-[1.75rem] border border-border/60 bg-muted/35">
+                <div className="surface-panel-subtle mx-5 overflow-hidden rounded-[1.75rem] bg-muted/30">
                   {product.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -331,7 +323,7 @@ export default async function ProductDetailPage({
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+                  <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
                     <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                       Purchase Cost
                     </p>
@@ -343,7 +335,7 @@ export default async function ProductDetailPage({
                       {product.exchange_rate.toFixed(2)}
                     </p>
                   </div>
-                  <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+                  <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
                     <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                       Suggested Price
                     </p>
@@ -357,7 +349,7 @@ export default async function ProductDetailPage({
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+                  <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
                     <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                       SKU
                     </p>
@@ -365,7 +357,7 @@ export default async function ProductDetailPage({
                       {product.sku}
                     </p>
                   </div>
-                  <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+                  <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
                     <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                       Inventory Footprint
                     </p>
@@ -375,7 +367,7 @@ export default async function ProductDetailPage({
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+                <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
@@ -393,13 +385,14 @@ export default async function ProductDetailPage({
 
         <Card size="sm">
           <CardHeader>
+            <p className="eyebrow-label">Availability</p>
             <CardTitle>Inventory Snapshot</CardTitle>
             <CardDescription>
               Live stock balance across Germany, transit, and Bangladesh.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="flex items-center justify-between rounded-[1.35rem] border border-border/60 bg-background/55 px-4 py-3">
+            <div className="surface-panel-subtle flex items-center justify-between rounded-[1.35rem] px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="rounded-2xl bg-primary/10 p-2 text-primary">
                   <MapPin className="h-4 w-4" />
@@ -415,7 +408,7 @@ export default async function ProductDetailPage({
                 {formatNumber(inventoryByLocation.germany)}
               </p>
             </div>
-            <div className="flex items-center justify-between rounded-[1.35rem] border border-border/60 bg-background/55 px-4 py-3">
+            <div className="surface-panel-subtle flex items-center justify-between rounded-[1.35rem] px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="rounded-2xl bg-sky-500/10 p-2 text-sky-600 dark:text-sky-300">
                   <TrendingUp className="h-4 w-4" />
@@ -431,7 +424,7 @@ export default async function ProductDetailPage({
                 {formatNumber(inventoryByLocation.in_transit)}
               </p>
             </div>
-            <div className="flex items-center justify-between rounded-[1.35rem] border border-border/60 bg-background/55 px-4 py-3">
+            <div className="surface-panel-subtle flex items-center justify-between rounded-[1.35rem] px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="rounded-2xl bg-amber-500/10 p-2 text-amber-600 dark:text-amber-300">
                   <Boxes className="h-4 w-4" />
@@ -447,7 +440,7 @@ export default async function ProductDetailPage({
                 {formatNumber(inventoryByLocation.bangladesh)}
               </p>
             </div>
-            <div className="flex items-center justify-between rounded-[1.35rem] border border-border/60 bg-background/55 px-4 py-3">
+            <div className="surface-panel-subtle flex items-center justify-between rounded-[1.35rem] px-4 py-3">
               <div>
                 <p className="font-medium">Total quantity</p>
                 <p className="text-xs text-muted-foreground">
@@ -487,6 +480,7 @@ export default async function ProductDetailPage({
 
       <Card>
         <CardHeader>
+          <p className="eyebrow-label">Movement Feed</p>
           <CardTitle>Recent Inventory Movements</CardTitle>
           <CardDescription>
             Latest stock activity recorded for this product.
@@ -494,33 +488,32 @@ export default async function ProductDetailPage({
         </CardHeader>
         <CardContent>
           {movements && movements.length > 0 ? (
-            <div className="overflow-hidden rounded-[1.5rem] border border-border/60">
-              <div className="overflow-x-auto">
-                <Table className="min-w-[40rem]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Route</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {movements.map((movement, index) => (
-                      <TableRow key={`${movement.created_at}-${index}`}>
-                        <TableCell className="font-medium">
-                          {getMovementLabel(movement)}
-                        </TableCell>
-                        <TableCell>{formatNumber(movement.quantity)}</TableCell>
-                        <TableCell className="max-w-xs text-sm text-muted-foreground">
-                          {movement.reason}
-                        </TableCell>
-                        <TableCell>{formatDate(movement.created_at)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            <div className="relative space-y-3 pl-6 before:absolute before:top-2 before:bottom-2 before:left-[0.45rem] before:w-px before:bg-gradient-to-b before:from-border before:via-border/70 before:to-transparent">
+              {movements.map((movement, index) => (
+                <div
+                  key={`${movement.created_at}-${index}`}
+                  className="surface-panel-subtle relative rounded-[1.45rem] px-4 py-4 before:absolute before:top-5 before:-left-[1.52rem] before:h-3 before:w-3 before:rounded-full before:border before:border-primary/30 before:bg-primary/80 before:shadow-[0_0_0_6px_color-mix(in_oklab,var(--background)_72%,transparent)]"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-semibold tracking-[-0.02em]">
+                        {getMovementLabel(movement)}
+                      </p>
+                      <p className="max-w-2xl text-sm leading-6 text-muted-foreground/95">
+                        {movement.reason}
+                      </p>
+                    </div>
+                    <div className="space-y-1 text-sm sm:text-right">
+                      <p className="font-semibold tracking-[-0.02em]">
+                        {formatNumber(movement.quantity)} units
+                      </p>
+                      <p className="text-muted-foreground">
+                        {formatDate(movement.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <EmptyState

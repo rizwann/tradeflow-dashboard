@@ -7,7 +7,6 @@ import {
   Plane,
   Receipt,
   ShoppingCart,
-  Wallet,
 } from "lucide-react"
 
 export type UserRole = "admin" | "partner"

@@ -238,7 +238,7 @@ export default async function ShipmentDetailPage({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         title={shipment.shipment_code}
         description={`Inbound ${formatLabel(shipment.method)} shipment${shipment.carrier_name ? ` via ${shipment.carrier_name}` : ""}.`}
@@ -277,13 +277,14 @@ export default async function ShipmentDetailPage({
                 <Badge variant="outline">{shipment.carrier_name}</Badge>
               ) : null}
             </div>
+            <p className="eyebrow-label">Shipment Profile</p>
             <CardTitle>Shipment Overview</CardTitle>
             <CardDescription>
               Financial and logistics profile for this inbound transfer.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                 Shipping Cost
               </p>
@@ -291,7 +292,7 @@ export default async function ShipmentDetailPage({
                 {formatBDT(shipment.shipping_cost)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                 Customs Cost
               </p>
@@ -299,7 +300,7 @@ export default async function ShipmentDetailPage({
                 {formatBDT(shipment.customs_cost)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <CalendarDays className="h-4 w-4" />
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
@@ -310,7 +311,7 @@ export default async function ShipmentDetailPage({
                 {formatDate(shipment.sent_date)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Truck className="h-4 w-4" />
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
@@ -321,7 +322,7 @@ export default async function ShipmentDetailPage({
                 {formatDate(shipment.expected_arrival_date)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <ShieldCheck className="h-4 w-4" />
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
@@ -332,7 +333,7 @@ export default async function ShipmentDetailPage({
                 {formatDate(shipment.received_date)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.5rem] px-4 py-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <ClipboardList className="h-4 w-4" />
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
@@ -343,7 +344,7 @@ export default async function ShipmentDetailPage({
                 {formatDate(shipment.created_at)}
               </p>
             </div>
-            <div className="md:col-span-2 rounded-[1.5rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle md:col-span-2 rounded-[1.5rem] px-4 py-4">
               <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                 Notes
               </p>
@@ -356,13 +357,14 @@ export default async function ShipmentDetailPage({
 
         <Card size="sm">
           <CardHeader>
+            <p className="eyebrow-label">Controls</p>
             <CardTitle>Operational Controls</CardTitle>
             <CardDescription>
               Navigate the draft workflow and status transitions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3 rounded-[1.4rem] border border-border/60 bg-background/55 px-4 py-3">
+            <div className="surface-panel-subtle flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
               <div className="rounded-2xl bg-primary/10 p-2 text-primary">
                 <Plane className="h-4 w-4" />
               </div>
@@ -375,7 +377,7 @@ export default async function ShipmentDetailPage({
             </div>
 
             {canShowStatusActions ? (
-              <div className="rounded-[1.4rem] border border-border/60 bg-background/55 p-4">
+              <div className="surface-panel-subtle rounded-[1.4rem] p-4">
                 <p className="mb-3 text-sm font-medium">Available actions</p>
                 <ShipmentStatusActions
                   shipmentId={shipment.id}
@@ -390,7 +392,7 @@ export default async function ShipmentDetailPage({
               </div>
             )}
 
-            <div className="rounded-[1.4rem] border border-border/60 bg-background/55 p-4">
+            <div className="surface-panel-subtle rounded-[1.4rem] p-4">
               <p className="text-sm font-medium">Cost allocation model</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Shipping and customs are distributed across item quantities and
@@ -432,6 +434,7 @@ export default async function ShipmentDetailPage({
 
       <Card>
         <CardHeader>
+          <p className="eyebrow-label">Shipment Manifest</p>
           <CardTitle>Shipment Items</CardTitle>
           <CardDescription>
             Per-product quantity and landed cost allocation.
@@ -517,6 +520,7 @@ export default async function ShipmentDetailPage({
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader>
+            <p className="eyebrow-label">FIFO Coverage</p>
             <CardTitle>FIFO Batch Coverage</CardTitle>
             <CardDescription>
               Inventory batches created from this shipment when stock is received.
@@ -587,6 +591,7 @@ export default async function ShipmentDetailPage({
 
         <Card>
           <CardHeader>
+            <p className="eyebrow-label">Audit Trail</p>
             <CardTitle>Audit & Status History</CardTitle>
             <CardDescription>
               Shipment lifecycle events captured in the audit log.
@@ -594,46 +599,48 @@ export default async function ShipmentDetailPage({
           </CardHeader>
           <CardContent className="space-y-3">
             {auditLogs && auditLogs.length > 0 ? (
-              auditLogs.map((entry, index) => {
-                const metadataEntries = getMetadataEntries(entry.metadata)
+              <div className="relative space-y-3 pl-6 before:absolute before:top-2 before:bottom-2 before:left-[0.45rem] before:w-px before:bg-gradient-to-b before:from-border before:via-border/70 before:to-transparent">
+                {auditLogs.map((entry, index) => {
+                  const metadataEntries = getMetadataEntries(entry.metadata)
 
-                return (
-                  <div
-                    key={`${entry.created_at}-${index}`}
-                    className="rounded-[1.5rem] border border-border/60 bg-background/55 p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="rounded-2xl bg-primary/10 p-2 text-primary">
-                          <Boxes className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {formatLabel(entry.action)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(entry.created_at)}
-                          </p>
+                  return (
+                    <div
+                      key={`${entry.created_at}-${index}`}
+                      className="surface-panel-subtle relative rounded-[1.5rem] px-4 py-4 before:absolute before:top-5 before:-left-[1.52rem] before:h-3 before:w-3 before:rounded-full before:border before:border-primary/30 before:bg-primary/80 before:shadow-[0_0_0_6px_color-mix(in_oklab,var(--background)_72%,transparent)]"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="rounded-2xl bg-primary/10 p-2 text-primary">
+                            <Boxes className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="font-medium tracking-[-0.02em]">
+                              {formatLabel(entry.action)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(entry.created_at)}
+                            </p>
+                          </div>
                         </div>
                       </div>
+
+                      {metadataEntries.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {metadataEntries.map(([key, value]) => (
+                            <Badge key={key} variant="outline">
+                              {formatLabel(key)}: {String(value)}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-4 text-sm text-muted-foreground">
+                          No additional metadata stored for this event.
+                        </p>
+                      )}
                     </div>
-
-                    {metadataEntries.length > 0 ? (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {metadataEntries.map(([key, value]) => (
-                          <Badge key={key} variant="outline">
-                            {formatLabel(key)}: {String(value)}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-4 text-sm text-muted-foreground">
-                        No additional metadata stored for this event.
-                      </p>
-                    )}
-                  </div>
-                )
-              })
+                  )
+                })}
+              </div>
             ) : (
               <EmptyState
                 title="No audit history"

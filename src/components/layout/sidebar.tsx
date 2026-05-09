@@ -15,28 +15,32 @@ export function Sidebar({ role }: SidebarProps) {
   const visibleNavItems = navItems.filter((item) => item.roles.includes(role))
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-80 shrink-0 px-4 py-4 text-sidebar-foreground lg:block">
-      <div className="flex h-full flex-col rounded-[2rem] border border-sidebar-border/70 bg-sidebar/88 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-2xl dark:shadow-[0_24px_64px_rgba(0,0,0,0.28)]">
-        <div className="flex h-24 items-center border-b border-sidebar-border/70 px-6">
+    <aside className="sticky top-0 hidden h-screen w-[21rem] shrink-0 px-4 py-4 text-sidebar-foreground lg:block">
+      <div className="surface-panel flex h-full flex-col bg-sidebar/82 text-sidebar-foreground">
+        <div
+          aria-hidden="true"
+          className="surface-orb -left-10 top-0 h-36 w-36 bg-primary/14"
+        />
+        <div className="flex h-28 items-center border-b border-sidebar-border/70 px-6">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 rounded-3xl transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="flex items-center gap-3 rounded-3xl transition-[transform,color] duration-150 hover:translate-x-0.5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_14px_30px_color-mix(in_oklab,var(--sidebar-primary)_28%,transparent)]">
+            <div className="relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.45rem] bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_18px_36px_color-mix(in_oklab,var(--sidebar-primary)_28%,transparent)]">
               <div className="absolute inset-[1px] rounded-[calc(theme(borderRadius.2xl)-1px)] border border-white/12" />
-              <span className="text-sm font-semibold tracking-[0.2em]">TF</span>
+              <span className="text-sm font-semibold tracking-[0.22em]">TF</span>
             </div>
             <div>
-              <p className="font-semibold tracking-tight">TradeFlow</p>
+              <p className="font-semibold tracking-[-0.03em]">TradeFlow</p>
               <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
-                Operations
+                Operations Platform
               </p>
             </div>
           </Link>
         </div>
 
         <div className="px-4 pt-5">
-          <div className="rounded-3xl border border-sidebar-border/60 bg-sidebar-accent/60 px-4 py-4">
+          <div className="surface-panel-subtle rounded-[1.7rem] bg-sidebar-accent/54 px-4 py-4">
             <p className="text-[0.68rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
               Control Center
             </p>
@@ -46,10 +50,17 @@ export function Sidebar({ role }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="space-y-2 px-4 py-5">
+        <div className="px-4 pt-6">
+          <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+            Platform Navigation
+          </p>
+        </div>
+
+        <nav className="space-y-2 px-4 py-4">
           {visibleNavItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`)
 
             return (
               <Link
@@ -57,16 +68,16 @@ export function Sidebar({ role }: SidebarProps) {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:border-sidebar-border/80 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                  "group relative flex items-center gap-3 rounded-[1.3rem] border px-4 py-3.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:-translate-y-0.5 hover:border-sidebar-border/80 hover:bg-sidebar-accent/72 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                   isActive
-                    ? "border-sidebar-border/80 bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+                    ? "border-sidebar-border/80 bg-sidebar-accent/92 text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(15,23,42,0.08)]"
                     : "border-transparent",
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "absolute inset-y-3 left-1.5 w-1 rounded-full transition-colors",
+                    "absolute inset-y-3 left-2 w-1 rounded-full transition-colors",
                     isActive ? "bg-sidebar-primary" : "bg-transparent",
                   )}
                 />
@@ -78,7 +89,7 @@ export function Sidebar({ role }: SidebarProps) {
                       : "text-muted-foreground group-hover:text-sidebar-accent-foreground",
                   )}
                 />
-                <span>{item.title}</span>
+                <span className="tracking-[-0.01em]">{item.title}</span>
               </Link>
             )
           })}

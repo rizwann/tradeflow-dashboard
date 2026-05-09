@@ -1,7 +1,13 @@
 "use client"
 
 import { EmptyState } from "@/components/shared/empty-state"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Bar,
   CartesianGrid,
@@ -44,23 +50,25 @@ const chartAxisStyle = {
 }
 
 const chartTooltipStyle = {
-  backgroundColor: "var(--popover)",
-  borderColor: "var(--border)",
+  backgroundColor: "color-mix(in oklab, var(--popover) 94%, transparent)",
+  borderColor: "color-mix(in oklab, var(--border) 80%, transparent)",
   color: "var(--popover-foreground)",
-  borderRadius: "14px",
-  boxShadow: "0 12px 32px rgba(15, 23, 42, 0.16)",
+  borderRadius: "18px",
+  boxShadow: "0 18px 48px rgba(15, 23, 42, 0.18)",
+  backdropFilter: "blur(16px)",
 }
 
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="shadow-sm">
+      <Card className="h-full">
         <CardHeader>
+          <p className="eyebrow-label">Performance Overview</p>
           <CardTitle>Monthly performance</CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <CardDescription>
             Revenue, expenses, and profit trends appear here as transactions are
             recorded.
-          </p>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <EmptyState
@@ -73,26 +81,27 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   }
 
   return (
-    <Card className="border-border/60 bg-card/78">
+    <Card className="h-full border-border/60 bg-card/78">
       <CardHeader className="pb-2">
-        <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
-          Performance Overview
-        </p>
+        <p className="eyebrow-label">Performance Overview</p>
         <CardTitle>Monthly performance</CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <CardDescription>
           Revenue and BDT expenses shown as bars, with FIFO-backed gross and
           net profit as trend lines.
-        </p>
+        </CardDescription>
       </CardHeader>
       <CardContent className="min-w-0">
         <div className="min-w-0 overflow-x-auto pb-2">
           <div className="min-w-[40rem] sm:min-w-0">
             <div className="h-[320px] min-h-[320px] w-full min-w-0 sm:h-[384px] sm:min-h-[384px]">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={data}>
+                <ComposedChart
+                  data={data}
+                  margin={{ top: 8, right: 8, bottom: 0, left: 2 }}
+                >
                   <CartesianGrid
                     stroke="var(--chart-grid)"
-                    strokeDasharray="3 3"
+                    strokeDasharray="3 5"
                     vertical={false}
                   />
                   <XAxis
@@ -121,18 +130,20 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                   />
                   <Legend
                     formatter={getSeriesLabel}
-                    wrapperStyle={{ paddingTop: 16 }}
+                    wrapperStyle={{ paddingTop: 18 }}
                   />
                   <Bar
                     dataKey="revenue"
                     name="revenue"
                     fill="var(--chart-1)"
+                    barSize={24}
                     radius={[10, 10, 0, 0]}
                   />
                   <Bar
                     dataKey="expenses"
                     name="expenses"
                     fill="var(--chart-4)"
+                    barSize={24}
                     radius={[10, 10, 0, 0]}
                   />
                   <Line
@@ -142,6 +153,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                     stroke="var(--chart-2)"
                     strokeWidth={3}
                     dot={{ r: 3, fill: "var(--chart-2)" }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
                   />
                   <Line
                     type="monotone"
@@ -150,6 +162,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                     stroke="var(--chart-5)"
                     strokeWidth={3}
                     dot={{ r: 3, fill: "var(--chart-5)" }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
