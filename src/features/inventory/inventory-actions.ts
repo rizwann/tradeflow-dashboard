@@ -12,6 +12,54 @@ export type InventoryActionState = {
   message: string
 }
 
+function mapInventoryAdjustmentErrorMessage(message: string) {
+  const normalizedMessage = message.toLowerCase()
+
+  if (normalizedMessage.includes("unauthorized")) {
+    return "You are not allowed to adjust inventory."
+  }
+
+  if (
+    normalizedMessage.includes("partners can only adjust bangladesh inventory")
+  ) {
+    return "Partners can only adjust Bangladesh inventory."
+  }
+
+  if (normalizedMessage.includes("invalid product selection")) {
+    return "Invalid product selection."
+  }
+
+  if (normalizedMessage.includes("inventory cannot go below zero")) {
+    return "Inventory cannot go below zero."
+  }
+
+  if (
+    normalizedMessage.includes(
+      "not enough fifo batch inventory to decrease bangladesh stock",
+    )
+  ) {
+    return "Not enough FIFO batch inventory to decrease Bangladesh stock."
+  }
+
+  if (normalizedMessage.includes("landed cost required")) {
+    return "Landed cost per unit is required for this Bangladesh adjustment."
+  }
+
+  if (
+    normalizedMessage.includes(
+      "cannot decrease inventory because no stock exists in that location",
+    )
+  ) {
+    return "Cannot decrease inventory because no stock exists in that location."
+  }
+
+  if (normalizedMessage.includes("quantity must be greater than 0")) {
+    return "Quantity must be greater than 0."
+  }
+
+  return message
+}
+
 export async function adjustInventory(
   _prevState: InventoryActionState,
   formData: FormData,
@@ -26,6 +74,7 @@ export async function adjustInventory(
       adjustment_type: formData.get("adjustment_type"),
       quantity: formData.get("quantity"),
       reason: formData.get("reason"),
+      landed_cost_per_unit: formData.get("landed_cost_per_unit"),
     }
 
     const parsed = inventoryAdjustmentSchema.safeParse(raw)
@@ -47,159 +96,20 @@ export async function adjustInventory(
       }
     }
 
-    const { data: product, error: productError } = await supabase
-      .from("products")
-      .select("id")
-      .eq("id", parsed.data.product_id)
-      .maybeSingle()
-
-    if (productError) {
-      return {
-        success: false,
-        message: productError.message,
-      }
-    }
-
-    if (!product) {
-      return {
-        success: false,
-        message: "Invalid product selection.",
-      }
-    }
-
-    const { data: existingInventory, error: fetchError } = await supabase
-      .from("inventory")
-      .select("id, quantity")
-      .eq("product_id", parsed.data.product_id)
-      .eq("location", parsed.data.location)
-      .maybeSingle()
-
-    if (fetchError) {
-      return {
-        success: false,
-        message: fetchError.message,
-      }
-    }
-
-    const previousQuantity = existingInventory?.quantity ?? 0
-    const hasExistingRow = Boolean(existingInventory)
-
-    if (!hasExistingRow && parsed.data.adjustment_type === "decrease") {
-      return {
-        success: false,
-        message: "Cannot decrease inventory because no stock exists in that location.",
-      }
-    }
-
-    let newQuantity = previousQuantity
-
-    if (parsed.data.adjustment_type === "increase") {
-      newQuantity = previousQuantity + parsed.data.quantity
-    }
-
-    if (parsed.data.adjustment_type === "decrease") {
-      newQuantity = previousQuantity - parsed.data.quantity
-    }
-
-    if (parsed.data.adjustment_type === "set") {
-      newQuantity = parsed.data.quantity
-    }
-
-    if (newQuantity < 0) {
-      return {
-        success: false,
-        message: "Inventory cannot go below zero.",
-      }
-    }
-
-    let inventoryId = existingInventory?.id ?? ""
-
-    if (existingInventory) {
-      const { error: updateError } = await supabase
-        .from("inventory")
-        .update({ quantity: newQuantity })
-        .eq("id", existingInventory.id)
-
-      if (updateError) {
-        return {
-          success: false,
-          message: updateError.message,
-        }
-      }
-
-      inventoryId = existingInventory.id
-    } else {
-      const { data: insertedInventory, error: insertError } = await supabase
-        .from("inventory")
-        .insert({
-          product_id: parsed.data.product_id,
-          location: parsed.data.location,
-          quantity: newQuantity,
-        })
-        .select("id")
-        .single()
-
-      if (insertError) {
-        return {
-          success: false,
-          message: insertError.message,
-        }
-      }
-
-      inventoryId = insertedInventory.id
-    }
-
-    const movementQuantity =
-      parsed.data.adjustment_type === "set"
-        ? Math.abs(newQuantity - previousQuantity)
-        : parsed.data.quantity
-
-    const fromLocation =
-      parsed.data.adjustment_type === "increase"
-        ? null
-        : parsed.data.location
-    const toLocation =
-      parsed.data.adjustment_type === "decrease"
-        ? null
-        : parsed.data.location
-
-    const { error: movementError } = await supabase
-      .from("inventory_movements")
-      .insert({
-        product_id: parsed.data.product_id,
-        from_location: fromLocation,
-        to_location: toLocation,
-        quantity: movementQuantity,
-        reason: `manual_adjustment: ${parsed.data.reason}`,
-        created_by: session.user.id,
-      })
-
-    if (movementError) {
-      return {
-        success: false,
-        message: movementError.message,
-      }
-    }
-
-    const { error: auditError } = await supabase.from("audit_logs").insert({
-      action: "inventory_adjusted",
-      entity_type: "inventory",
-      entity_id: inventoryId,
-      user_id: session.user.id,
-      metadata: {
-        product_id: parsed.data.product_id,
-        location: parsed.data.location,
-        adjustment_type: parsed.data.adjustment_type,
-        previous_quantity: previousQuantity,
-        new_quantity: newQuantity,
-        reason: parsed.data.reason,
-      },
+    const { data, error } = await supabase.rpc("adjust_inventory_with_fifo", {
+      p_product_id: parsed.data.product_id,
+      p_location: parsed.data.location,
+      p_adjustment_type: parsed.data.adjustment_type,
+      p_quantity: parsed.data.quantity,
+      p_reason: parsed.data.reason,
+      p_user_id: session.user.id,
+      p_landed_cost_per_unit: parsed.data.landed_cost_per_unit ?? null,
     })
 
-    if (auditError) {
+    if (error) {
       return {
         success: false,
-        message: auditError.message,
+        message: mapInventoryAdjustmentErrorMessage(error.message),
       }
     }
 
@@ -209,7 +119,13 @@ export async function adjustInventory(
 
     return {
       success: true,
-      message: "Inventory adjusted successfully.",
+      message:
+        typeof data === "object" &&
+        data !== null &&
+        "message" in data &&
+        typeof data.message === "string"
+          ? data.message
+          : "Inventory adjusted successfully.",
     }
   } catch (error) {
     return {

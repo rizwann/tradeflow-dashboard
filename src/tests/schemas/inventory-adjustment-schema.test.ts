@@ -9,6 +9,7 @@ describe("inventoryAdjustmentSchema", () => {
         adjustment_type: "set",
         quantity: 0,
         reason: "Cycle count",
+        landed_cost_per_unit: 120,
       }).success,
     ).toBe(true)
   })
@@ -35,5 +36,39 @@ describe("inventoryAdjustmentSchema", () => {
         reason: "Count correction",
       }).success,
     ).toBe(false)
+  })
+
+  it("requires landed cost for bangladesh increase and set adjustments", () => {
+    expect(
+      inventoryAdjustmentSchema.safeParse({
+        product_id: "p-1",
+        location: "bangladesh",
+        adjustment_type: "increase",
+        quantity: 2,
+        reason: "Manual restock",
+      }).success,
+    ).toBe(false)
+
+    expect(
+      inventoryAdjustmentSchema.safeParse({
+        product_id: "p-1",
+        location: "bangladesh",
+        adjustment_type: "set",
+        quantity: 4,
+        reason: "Cycle count correction",
+      }).success,
+    ).toBe(false)
+  })
+
+  it("does not require landed cost for bangladesh decrease", () => {
+    expect(
+      inventoryAdjustmentSchema.safeParse({
+        product_id: "p-1",
+        location: "bangladesh",
+        adjustment_type: "decrease",
+        quantity: 1,
+        reason: "Damaged stock",
+      }).success,
+    ).toBe(true)
   })
 })
