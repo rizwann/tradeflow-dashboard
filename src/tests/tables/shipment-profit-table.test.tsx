@@ -20,8 +20,8 @@ describe("ShipmentProfitTable", () => {
       />,
     )
 
-    expect(screen.getByText("SHP-1")).toBeInTheDocument()
-    expect(screen.getByText("36.0%")).toBeInTheDocument()
+    expect(screen.getAllByText("SHP-1").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("36.0%").length).toBeGreaterThan(0)
   })
 
   it("renders empty state", () => {

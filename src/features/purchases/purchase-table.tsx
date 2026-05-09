@@ -37,6 +37,48 @@ function formatDate(value: string) {
   }).format(date)
 }
 
+function PurchaseMobileCard({ purchase }: { purchase: PurchaseTableRow }) {
+  return (
+    <div className="surface-panel-subtle rounded-[1.45rem] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-semibold tracking-[-0.02em]">
+            {purchase.productName}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatDate(purchase.purchaseDate)}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Quantity
+          </p>
+          <p className="mt-1 text-sm font-semibold">{purchase.quantity}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Unit Cost EUR
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {formatEUR(purchase.unitCostEur)}
+          </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Total Cost BDT
+          </p>
+          <p className="mt-2 text-sm font-semibold">
+            {formatBDT(purchase.totalCostBdt)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const columns: ColumnDef<PurchaseTableRow>[] = [
   {
     accessorKey: "productName",
@@ -101,6 +143,9 @@ export function PurchaseTable({ purchases }: PurchaseTableProps) {
       searchPlaceholder="Search purchases by product name..."
       emptyTitle="No purchases yet"
       emptyDescription="Record purchases to add Germany-side inventory."
+      mobileCardRenderer={(purchase) => (
+        <PurchaseMobileCard purchase={purchase} />
+      )}
     />
   )
 }

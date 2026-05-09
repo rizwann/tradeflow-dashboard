@@ -43,9 +43,9 @@ describe("ShipmentTable", () => {
       />,
     )
 
-    expect(screen.getByLabelText(/edit draft shipment shp-1/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/delete draft shipment shp-1/i)).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /mark as sent/i })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/edit draft shipment shp-1/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByLabelText(/delete draft shipment shp-1/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("button", { name: /mark as sent/i }).length).toBeGreaterThan(0)
   })
 
   it("does not show draft edit/delete for partner", () => {

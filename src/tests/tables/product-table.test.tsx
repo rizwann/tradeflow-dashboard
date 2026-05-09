@@ -21,9 +21,9 @@ describe("ProductTable", () => {
       />,
     )
 
-    expect(screen.getByText("Soap")).toBeInTheDocument()
-    expect(screen.getByText("€10.00")).toBeInTheDocument()
-    expect(screen.getByLabelText("Edit product Soap")).toBeInTheDocument()
+    expect(screen.getAllByText("Soap").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("€10.00").length).toBeGreaterThan(0)
+    expect(screen.getAllByLabelText("Edit product Soap").length).toBeGreaterThan(0)
   })
 
   it("renders empty state", () => {
