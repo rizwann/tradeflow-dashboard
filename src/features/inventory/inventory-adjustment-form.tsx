@@ -73,6 +73,13 @@ export function InventoryAdjustmentForm({
     control,
     name: "location",
   })
+  const selectedAdjustmentType = useWatch({
+    control,
+    name: "adjustment_type",
+  })
+  const needsLandedCost =
+    selectedLocation === "bangladesh" &&
+    (selectedAdjustmentType === "increase" || selectedAdjustmentType === "set")
 
   useEffect(() => {
     if (!state.message) return
@@ -186,12 +193,52 @@ export function InventoryAdjustmentForm({
               ) : null}
             </div>
           </div>
+
+          {needsLandedCost ? (
+            <div className="md:col-span-2">
+              <div className="space-y-2.5">
+                <Label
+                  htmlFor="landed_cost_per_unit"
+                  className="text-[0.72rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+                >
+                  Landed cost per unit
+                </Label>
+                <Input
+                  id="landed_cost_per_unit"
+                  type="number"
+                  min={0.01}
+                  step="0.01"
+                  aria-invalid={Boolean(errors.landed_cost_per_unit)}
+                  aria-describedby={
+                    errors.landed_cost_per_unit
+                      ? "landed-cost-per-unit-error landed-cost-per-unit-help"
+                      : "landed-cost-per-unit-help"
+                  }
+                  {...register("landed_cost_per_unit")}
+                />
+                <p
+                  id="landed-cost-per-unit-help"
+                  className="text-sm leading-6 text-muted-foreground"
+                >
+                  Used to create a FIFO cost batch for manually added Bangladesh stock.
+                </p>
+                {errors.landed_cost_per_unit ? (
+                  <p
+                    id="landed-cost-per-unit-error"
+                    className="break-words text-sm font-medium text-destructive"
+                  >
+                    {errors.landed_cost_per_unit.message}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {selectedLocation === "bangladesh" ? (
           <div className="surface-panel-subtle rounded-2xl border-amber-300/50 bg-amber-100/55 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-            Manual Bangladesh stock changes may affect FIFO cost accuracy. Use
-            only for real stock corrections.
+            Bangladesh adjustments are FIFO-aware. Increases create a new cost
+            batch; decreases consume oldest batches.
           </div>
         ) : null}
       </section>

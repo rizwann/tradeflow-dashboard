@@ -11,7 +11,7 @@ jest.mock("react", () => {
   }
 })
 
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 
 import { InventoryAdjustmentForm } from "@/features/inventory/inventory-adjustment-form"
 
@@ -32,7 +32,7 @@ describe("InventoryAdjustmentForm", () => {
 
     expect(screen.getByLabelText("Location")).toBeDisabled()
     expect(
-      screen.getByText(/manual bangladesh stock changes may affect fifo cost accuracy/i),
+      screen.getByText(/bangladesh adjustments are fifo-aware/i),
     ).toBeInTheDocument()
   })
 
@@ -46,5 +46,35 @@ describe("InventoryAdjustmentForm", () => {
 
     expect(screen.getByRole("option", { name: "Germany" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Save adjustment" })).toBeInTheDocument()
+  })
+
+  it("shows landed cost input for bangladesh increase and set adjustments", () => {
+    render(
+      <InventoryAdjustmentForm
+        products={products}
+        currentUserRole="admin"
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText("Location"), {
+      target: { value: "bangladesh" },
+    })
+    expect(
+      screen.getByLabelText("Landed cost per unit"),
+    ).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText("Adjustment type"), {
+      target: { value: "decrease" },
+    })
+    expect(
+      screen.queryByLabelText("Landed cost per unit"),
+    ).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText("Adjustment type"), {
+      target: { value: "set" },
+    })
+    expect(
+      screen.getByLabelText("Landed cost per unit"),
+    ).toBeInTheDocument()
   })
 })
