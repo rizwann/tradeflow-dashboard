@@ -1,7 +1,8 @@
 "use client"
 
 export function downloadCsv(filename: string, csvContent: string) {
-  const blob = new Blob([csvContent], {
+  const csvWithBom = `\uFEFF${csvContent}`
+  const blob = new Blob([csvWithBom], {
     type: "text/csv;charset=utf-8;",
   })
   const url = URL.createObjectURL(blob)

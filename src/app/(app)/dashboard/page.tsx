@@ -409,6 +409,27 @@ export default async function DashboardPage() {
     .sort((left, right) => right.quantitySold - left.quantitySold)
     .slice(0, 5)
 
+  const leastSellingProducts = productRows
+    .map((product) => {
+      const inventorySummary = inventoryByProduct.get(product.id)
+      const quantitySold = bestSellingMap.get(product.id)?.quantitySold ?? 0
+
+      return {
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        quantitySold,
+        bangladeshStock: inventorySummary?.bangladesh ?? 0,
+        totalStock: inventorySummary?.total ?? 0,
+      }
+    })
+    .sort(
+      (left, right) =>
+        left.quantitySold - right.quantitySold ||
+        left.productName.localeCompare(right.productName),
+    )
+    .slice(0, 5)
+
   const profitabilityMap = new Map<
     string,
     {
@@ -567,10 +588,10 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
         <RevenueExpenseChart data={chartData} />
 
-        <Card className="h-full border-border/60 bg-card/76">
+        <Card className="h-full min-w-0 border-border/60 bg-card/76">
           <CardHeader className="pb-3">
             <p className="eyebrow-label">Workspace Pulse</p>
             <CardTitle>What stands out this period</CardTitle>
@@ -630,7 +651,7 @@ export default async function DashboardPage() {
           </h2>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
         <DashboardTableCard
           title="Top 5 Best-Selling Products"
           description="Ranked by total quantity sold."
@@ -671,6 +692,30 @@ export default async function DashboardPage() {
           }
           emptyTitle="No FIFO profitability yet"
           emptyDescription="Complete stock intake and sales so FIFO consumptions can populate profitability."
+        />
+
+        <DashboardTableCard
+          title="5 Least-Selling Products"
+          description="Includes products with zero active sales so slow movers are easy to spot."
+          columns={["Product", "SKU", "Units Sold", "BD Stock"]}
+          rows={
+            leastSellingProducts.length > 0
+              ? leastSellingProducts.map((product) => (
+                  <TableRow key={product.productId}>
+                    <TableCell className="font-medium">
+                      {product.productName}
+                    </TableCell>
+                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>{formatQuantity(product.quantitySold)}</TableCell>
+                    <TableCell>
+                      {formatQuantity(product.bangladeshStock || product.totalStock)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              : null
+          }
+          emptyTitle="No products yet"
+          emptyDescription="Add products to surface least-selling items."
         />
 
         <DashboardTableCard
