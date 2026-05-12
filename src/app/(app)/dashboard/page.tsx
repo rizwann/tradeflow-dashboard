@@ -23,6 +23,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+export const metadata = {
+  title: "Dashboard",
+}
+
 type SaleRow = {
   id: string
   product_id: string

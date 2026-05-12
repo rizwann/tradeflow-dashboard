@@ -1,0 +1,23 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="64" fill="#111827"/>
+  <rect x="18" y="18" width="220" height="220" rx="46" fill="url(#surface)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <path d="M74 89.5C74 80.3873 81.3873 73 90.5 73H128L96.5 104.5C89.5964 111.404 78.4036 111.404 71.5 104.5L74 102V89.5Z" fill="url(#flow)"/>
+  <path d="M128 73H165.5C174.613 73 182 80.3873 182 89.5V127L150.5 95.5C143.596 88.5964 132.404 88.5964 125.5 95.5L128 73Z" fill="#C7D2FE" fill-opacity="0.9"/>
+  <path d="M74 129L105.5 160.5C111.357 166.357 120.072 167.128 126.746 162.812L134.5 157.796C141.174 153.48 149.889 154.251 155.746 160.108L182 186.362V166.5C182 157.387 174.613 150 165.5 150H90.5C81.3873 150 74 142.613 74 133.5V129Z" fill="url(#flowSoft)"/>
+  <path d="M96 118H160" stroke="white" stroke-opacity="0.88" stroke-width="14" stroke-linecap="round"/>
+  <path d="M96 146H136" stroke="white" stroke-opacity="0.7" stroke-width="14" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="surface" x1="44" y1="28" x2="226" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F2937"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="flow" x1="74" y1="73" x2="149" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#60A5FA"/>
+    </linearGradient>
+    <linearGradient id="flowSoft" x1="88" y1="136" x2="188" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#93C5FD"/>
+      <stop offset="1" stop-color="#A5B4FC"/>
+    </linearGradient>
+  </defs>
+</svg>

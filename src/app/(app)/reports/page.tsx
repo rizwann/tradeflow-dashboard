@@ -8,6 +8,10 @@ import { ReportsExportButtons } from "@/features/reports/reports-export-buttons"
 import { ShipmentProfitTable } from "@/features/reports/shipment-profit-table"
 import { calculateProductProfit } from "@/features/reports/report-calculations"
 
+export const metadata = {
+  title: "Reports",
+}
+
 type SaleRow = {
   product_id: string
   quantity: number

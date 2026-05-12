@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "sonner"
 
@@ -16,9 +16,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+
 export const metadata: Metadata = {
-  title: "TradeFlow Dashboard",
-  description: "Operations dashboard for inventory, shipments, sales, and reporting.",
+  metadataBase: new URL(appUrl),
+  title: {
+    default: "TradeFlow Dashboard",
+    template: "%s | TradeFlow Dashboard",
+  },
+  description:
+    "Modern inventory, shipment, and FIFO profitability management platform.",
+  keywords: [
+    "inventory management",
+    "logistics dashboard",
+    "FIFO accounting",
+    "ERP analytics",
+    "shipment tracking",
+    "profitability reporting",
+    "supply chain operations",
+    "TradeFlow Dashboard",
+  ],
+  applicationName: "TradeFlow Dashboard",
+  referrer: "origin-when-cross-origin",
+  openGraph: {
+    title: "TradeFlow Dashboard",
+    description:
+      "Modern inventory, shipment, and FIFO profitability management platform.",
+    url: appUrl,
+    siteName: "TradeFlow Dashboard",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "TradeFlow Dashboard",
+    description:
+      "Modern inventory, shipment, and FIFO profitability management platform.",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f7fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#181c24" },
+  ],
 }
 
 export default function RootLayout({
