@@ -34,9 +34,22 @@ const chartTooltipStyle = {
   backdropFilter: "blur(16px)",
 }
 
+function formatAxisValue(value: number) {
+  const absoluteValue = Math.abs(value)
+
+  if (absoluteValue >= 1000) {
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value)
+  }
+
+  return Math.round(value).toString()
+}
+
 export function MonthlyReportChart({ data }: MonthlyReportChartProps) {
   return (
-    <div className="surface-panel rounded-[1.75rem] bg-card/78 p-5 sm:p-6">
+    <div className="surface-panel min-w-0 overflow-hidden rounded-[1.75rem] bg-card/78 p-5 sm:p-6">
       <div className="mb-4 space-y-1">
         <p className="eyebrow-label">
           Executive Trendline
@@ -49,51 +62,50 @@ export function MonthlyReportChart({ data }: MonthlyReportChartProps) {
         </p>
       </div>
 
-      <div className="min-w-0 overflow-x-auto pb-2">
-        <div className="min-w-[36rem] sm:min-w-0">
-          <div className="h-[320px] min-h-[320px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 2 }}>
-                <CartesianGrid
-                  stroke="var(--chart-grid)"
-                  strokeDasharray="3 5"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="month"
-                  tick={chartAxisStyle}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={chartAxisStyle}
-                  axisLine={false}
-                  tickLine={false}
-                  width={72}
-                />
-                <Tooltip
-                  contentStyle={chartTooltipStyle}
-                  cursor={{
-                    fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
-                  }}
-                  labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
-                />
-                <Bar
-                  dataKey="revenue"
-                  fill="var(--chart-1)"
-                  barSize={24}
-                  radius={[10, 10, 0, 0]}
-                />
-                <Bar
-                  dataKey="expenses"
-                  fill="var(--chart-4)"
-                  barSize={24}
-                  radius={[10, 10, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="h-[300px] w-full min-w-0 overflow-hidden sm:h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+            <CartesianGrid
+              stroke="var(--chart-grid)"
+              strokeDasharray="3 5"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="month"
+              tick={chartAxisStyle}
+              axisLine={false}
+              tickLine={false}
+              interval="preserveStartEnd"
+              minTickGap={24}
+            />
+            <YAxis
+              tickFormatter={formatAxisValue}
+              tick={chartAxisStyle}
+              axisLine={false}
+              tickLine={false}
+              width={52}
+            />
+            <Tooltip
+              contentStyle={chartTooltipStyle}
+              cursor={{
+                fill: "color-mix(in oklab, var(--accent) 26%, transparent)",
+              }}
+              labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+            />
+            <Bar
+              dataKey="revenue"
+              fill="var(--chart-1)"
+              barSize={24}
+              radius={[10, 10, 0, 0]}
+            />
+            <Bar
+              dataKey="expenses"
+              fill="var(--chart-4)"
+              barSize={24}
+              radius={[10, 10, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
