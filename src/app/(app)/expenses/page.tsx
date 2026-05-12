@@ -11,6 +11,10 @@ import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 
+export const metadata = {
+  title: "Expenses",
+}
+
 type ExpenseRow = {
   id: string
   type:

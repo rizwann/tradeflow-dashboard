@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import {
@@ -39,6 +40,23 @@ type ShipmentDetailPageProps = {
   params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata({
+  params,
+}: ShipmentDetailPageProps): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: shipment } = await supabase
+    .from("shipments")
+    .select("shipment_code")
+    .eq("id", id)
+    .maybeSingle<{ shipment_code: string }>()
+
+  return {
+    title: shipment?.shipment_code ?? "Shipment",
+  }
 }
 
 type ShipmentStatus =

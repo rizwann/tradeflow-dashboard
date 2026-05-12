@@ -10,6 +10,10 @@ import {
   type PurchaseTableRow,
 } from "@/features/purchases/purchase-table"
 
+export const metadata = {
+  title: "Purchases",
+}
+
 type PurchaseRecord = {
   id: string
   quantity: number

@@ -1,5 +1,9 @@
 import { requireAdmin } from "@/lib/auth"
 
+export const metadata = {
+  title: "Accounting",
+}
+
 export default async function AccountingPage() {
   await requireAdmin()
   return (

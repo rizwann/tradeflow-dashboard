@@ -11,6 +11,10 @@ import {
 } from "@/features/shipments/shipment-table"
 import { getCurrentUserProfile } from "@/lib/auth"
 
+export const metadata = {
+  title: "Shipments",
+}
+
 type ShipmentsPageProps = {
   searchParams: Promise<{
     error?: string

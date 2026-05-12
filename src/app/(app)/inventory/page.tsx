@@ -9,6 +9,10 @@ import {
 } from "@/features/inventory/inventory-table"
 import { Button } from "@/components/ui/button"
 
+export const metadata = {
+  title: "Inventory",
+}
+
 type ProductRow = {
   id: string
   name: string

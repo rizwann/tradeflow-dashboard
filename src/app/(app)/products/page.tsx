@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
 
+export const metadata = {
+  title: "Products",
+}
+
 type ProductExportRow = {
   id: string
   name: string

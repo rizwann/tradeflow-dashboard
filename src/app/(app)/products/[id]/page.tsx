@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import {
@@ -30,6 +31,23 @@ type ProductDetailPageProps = {
   params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata({
+  params,
+}: ProductDetailPageProps): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle<{ name: string }>()
+
+  return {
+    title: product?.name ?? "Product",
+  }
 }
 
 type ProductRow = {
