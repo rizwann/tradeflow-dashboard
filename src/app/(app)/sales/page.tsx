@@ -29,7 +29,12 @@ type SaleRow = {
   status: "active" | "voided"
   voided_at: string | null
   void_reason: string | null
+  customer_id: string | null
   customer_name: string | null
+  customers: {
+    name: string
+    phone: string
+  } | null
   products: {
     name: string
   } | null
@@ -43,7 +48,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
   const { data: sales, error } = await supabase
     .from("sales")
     .select(
-      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_name, products(name)",
+      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_id, customer_name, customers(name, phone), products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<SaleRow[]>()
@@ -65,6 +70,9 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
       paymentStatus: sale.payment_status,
       saleDate: sale.sale_date,
       soldBy: sale.sold_by,
+      customerId: sale.customer_id,
+      customerName: sale.customers?.name ?? sale.customer_name,
+      customerPhone: sale.customers?.phone ?? null,
       status: sale.status,
       voidedAt: sale.voided_at,
       voidReason: sale.void_reason,
@@ -83,7 +91,8 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
       sale_date: sale.sale_date,
       payment_status: sale.payment_status,
       status: sale.status,
-      customer_name: sale.customer_name,
+      customer_name: sale.customers?.name ?? sale.customer_name,
+      customer_phone: sale.customers?.phone ?? null,
     }
   })
 

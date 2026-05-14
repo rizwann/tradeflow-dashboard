@@ -30,11 +30,15 @@ export const metadata = {
 type SaleRow = {
   id: string
   product_id: string
+  customer_id: string | null
   quantity: number
   unit_selling_price_bdt: number
   discount: number | null
   sale_date: string
   status: "active" | "voided"
+  customers: {
+    name: string
+  } | null
   products: {
     name: string
   } | null
@@ -215,7 +219,7 @@ export default async function DashboardPage() {
     supabase
       .from("sales")
       .select(
-        "id, product_id, quantity, unit_selling_price_bdt, discount, sale_date, status, products(name)",
+        "id, product_id, customer_id, quantity, unit_selling_price_bdt, discount, sale_date, status, customers(name), products(name)",
       )
       .eq("status", "active")
       .returns<SaleRow[]>(),
@@ -387,8 +391,15 @@ export default async function DashboardPage() {
     string,
     { productName: string; quantitySold: number; revenue: number }
   >()
+  const customerRevenueMap = new Map<
+    string,
+    { customerName: string; ordersCount: number; revenue: number }
+  >()
 
   for (const sale of salesRows) {
+    const saleRevenue =
+      sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
+
     const existing = bestSellingMap.get(sale.product_id) ?? {
       productName:
         sale.products?.name ??
@@ -399,10 +410,22 @@ export default async function DashboardPage() {
     }
 
     existing.quantitySold += sale.quantity
-    existing.revenue +=
-      sale.quantity * sale.unit_selling_price_bdt - Number(sale.discount ?? 0)
+    existing.revenue += saleRevenue
 
     bestSellingMap.set(sale.product_id, existing)
+
+    if (sale.customer_id) {
+      const existingCustomer = customerRevenueMap.get(sale.customer_id) ?? {
+        customerName: sale.customers?.name ?? "Unknown customer",
+        ordersCount: 0,
+        revenue: 0,
+      }
+
+      existingCustomer.ordersCount += 1
+      existingCustomer.revenue += saleRevenue
+
+      customerRevenueMap.set(sale.customer_id, existingCustomer)
+    }
   }
 
   const topBestSellingProducts = Array.from(bestSellingMap.entries())
@@ -515,6 +538,12 @@ export default async function DashboardPage() {
   const leadingRevenueProduct = topBestSellingProducts[0]
   const leadingProfitProduct = topProfitableProducts[0]
   const lowStockCount = lowStockAlerts.length
+  const bestCustomer = Array.from(customerRevenueMap.values()).sort(
+    (left, right) => right.revenue - left.revenue,
+  )[0]
+  const returningCustomerCount = Array.from(customerRevenueMap.values()).filter(
+    (customer) => customer.ordersCount > 1,
+  ).length
 
   return (
     <div className="min-w-0 space-y-10">
@@ -639,6 +668,28 @@ export default async function DashboardPage() {
                 {lowStockCount === 0
                   ? "No products are currently at five units or below."
                   : "Use the low-stock insight table below to prioritize replenishment."}
+              </p>
+            </div>
+
+            <div className="surface-tile px-4 py-4">
+              <p className="eyebrow-label">Best Customer</p>
+              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                {bestCustomer?.customerName ?? "No linked customers yet"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground/95">
+                {bestCustomer
+                  ? `${formatBDT(bestCustomer.revenue)} revenue across ${formatQuantity(bestCustomer.ordersCount)} active orders`
+                  : "Link customers to sales to surface buyer revenue leaders."}
+              </p>
+            </div>
+
+            <div className="surface-tile px-4 py-4">
+              <p className="eyebrow-label">Returning Customers</p>
+              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                {formatQuantity(returningCustomerCount)}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground/95">
+                Customers with more than one active linked sale.
               </p>
             </div>
           </CardContent>

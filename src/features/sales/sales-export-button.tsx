@@ -12,6 +12,7 @@ type SaleExportRow = {
   payment_status: string
   status: string
   customer_name: string | null
+  customer_phone: string | null
 }
 
 export function SalesExportButton({ rows }: { rows: SaleExportRow[] }) {
@@ -32,6 +33,7 @@ export function SalesExportButton({ rows }: { rows: SaleExportRow[] }) {
         { label: "Payment Status", value: (row) => row.payment_status },
         { label: "Status", value: (row) => row.status },
         { label: "Customer Name", value: (row) => row.customer_name ?? "" },
+        { label: "Customer Phone", value: (row) => row.customer_phone ?? "" },
       ]}
     />
   )
