@@ -13,6 +13,14 @@ jest.mock("@/features/sales/sale-table-actions", () => ({
     ),
 }))
 
+jest.mock("@/features/deliveries/delivery-table-actions", () => ({
+  DeliveryTableActions: ({
+    delivery,
+  }: {
+    delivery?: { status: string } | null
+  }) => <span>{delivery ? "Manage delivery" : "Add delivery"}</span>,
+}))
+
 import { render, screen } from "@testing-library/react"
 
 import { SaleTable } from "@/features/sales/sale-table"
@@ -28,6 +36,17 @@ describe("SaleTable", () => {
             customerId: "cust-1",
             customerName: "Rahim Traders",
             customerPhone: "+8801712345678",
+            customerCreatedBy: null,
+            deliveryId: "del-1",
+            deliveryStatus: "pending",
+            deliveryMethod: "Pathao",
+            deliveryTrackingNumber: "TRK-001",
+            deliveryCost: 80,
+            deliveryCostPaidBy: "business",
+            deliveryShippedAt: null,
+            deliveryDeliveredAt: null,
+            deliveryNotes: null,
+            deliveryCreatedBy: "user-1",
             quantity: 1,
             unitSellingPriceBdt: 1200,
             discount: 0,
@@ -47,6 +66,7 @@ describe("SaleTable", () => {
 
     expect(screen.getAllByRole("button", { name: /void sale for soap/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByText("Rahim Traders").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Manage delivery").length).toBeGreaterThan(0)
   })
 
   it("shows voided state and reason for voided sales", () => {
@@ -59,6 +79,17 @@ describe("SaleTable", () => {
             customerId: null,
             customerName: null,
             customerPhone: null,
+            customerCreatedBy: null,
+            deliveryId: null,
+            deliveryStatus: null,
+            deliveryMethod: null,
+            deliveryTrackingNumber: null,
+            deliveryCost: null,
+            deliveryCostPaidBy: null,
+            deliveryShippedAt: null,
+            deliveryDeliveredAt: null,
+            deliveryNotes: null,
+            deliveryCreatedBy: null,
             quantity: 1,
             unitSellingPriceBdt: 1200,
             discount: 0,

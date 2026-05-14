@@ -7,6 +7,7 @@ import {
   Plane,
   Receipt,
   ShoppingCart,
+  Truck,
   Users,
 } from "lucide-react"
 
@@ -60,6 +61,12 @@ export const navItems: NavItem[] = [
     title: "Customers",
     href: "/customers",
     icon: Users,
+    roles: ["admin", "partner"],
+  },
+  {
+    title: "Deliveries",
+    href: "/deliveries",
+    icon: Truck,
     roles: ["admin", "partner"],
   },
   {
