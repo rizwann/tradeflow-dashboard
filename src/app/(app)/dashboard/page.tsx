@@ -44,6 +44,12 @@ type SaleRow = {
   } | null
 }
 
+type DeliveryInsightRow = {
+  status: "pending" | "shipped" | "delivered" | "cancelled"
+  delivery_cost: number
+  delivery_cost_paid_by: "business" | "customer"
+}
+
 type ExpenseRow = {
   amount: number
   currency: string
@@ -211,6 +217,7 @@ export default async function DashboardPage() {
   const [
     { data: sales, error: salesError },
     { data: expenses, error: expensesError },
+    { data: deliveries, error: deliveriesError },
     { data: inventory, error: inventoryError },
     { data: products, error: productsError },
     { data: saleBatchConsumptions, error: saleBatchError },
@@ -226,6 +233,10 @@ export default async function DashboardPage() {
     supabase.from("expenses").select("amount, currency, date").returns<
       ExpenseRow[]
     >(),
+    supabase
+      .from("sales_deliveries")
+      .select("status, delivery_cost, delivery_cost_paid_by")
+      .returns<DeliveryInsightRow[]>(),
     supabase
       .from("inventory")
       .select("product_id, location, quantity")
@@ -251,6 +262,7 @@ export default async function DashboardPage() {
   if (
     salesError ||
     expensesError ||
+    deliveriesError ||
     inventoryError ||
     productsError ||
     saleBatchError ||
@@ -262,6 +274,7 @@ export default async function DashboardPage() {
         message={
           salesError?.message ??
           expensesError?.message ??
+          deliveriesError?.message ??
           inventoryError?.message ??
           productsError?.message ??
           saleBatchError?.message ??
@@ -273,6 +286,7 @@ export default async function DashboardPage() {
 
   const salesRows = sales ?? []
   const expenseRows = expenses ?? []
+  const deliveryRows = deliveries ?? []
   const inventoryRows = inventory ?? []
   const productRows = products ?? []
   const consumptionRows = saleBatchConsumptions ?? []
@@ -332,6 +346,17 @@ export default async function DashboardPage() {
     )
   }, 0)
 
+  const businessPaidDeliveryCost = deliveryRows.reduce((sum, delivery) => {
+    if (
+      delivery.delivery_cost_paid_by !== "business" ||
+      delivery.status === "cancelled"
+    ) {
+      return sum
+    }
+
+    return sum + Number(delivery.delivery_cost)
+  }, 0)
+
   const totalExpenses = expenseRows.reduce((sum, expense) => {
     if (expense.currency !== "BDT") return sum
 
@@ -346,7 +371,7 @@ export default async function DashboardPage() {
   const netProfit = calculateNetProfit({
     revenue: totalRevenue,
     productCosts: totalFifoCost,
-    expenses: totalExpenses,
+    expenses: totalExpenses + businessPaidDeliveryCost,
   })
   const profitMargin = calculateProfitMargin(totalGrossProfit, totalRevenue)
 
@@ -538,6 +563,22 @@ export default async function DashboardPage() {
   const leadingRevenueProduct = topBestSellingProducts[0]
   const leadingProfitProduct = topProfitableProducts[0]
   const lowStockCount = lowStockAlerts.length
+  const pendingDeliveriesCount = deliveryRows.filter(
+    (delivery) => delivery.status === "pending",
+  ).length
+  const shippedDeliveriesCount = deliveryRows.filter(
+    (delivery) => delivery.status === "shipped",
+  ).length
+  const deliveredDeliveriesCount = deliveryRows.filter(
+    (delivery) => delivery.status === "delivered",
+  ).length
+  const nonCancelledDeliveryCount = deliveryRows.filter(
+    (delivery) => delivery.status !== "cancelled",
+  ).length
+  const deliveryCompletionRate =
+    nonCancelledDeliveryCount === 0
+      ? 0
+      : (deliveredDeliveriesCount / nonCancelledDeliveryCount) * 100
   const bestCustomer = Array.from(customerRevenueMap.values()).sort(
     (left, right) => right.revenue - left.revenue,
   )[0]
@@ -579,13 +620,50 @@ export default async function DashboardPage() {
         <MetricCard
           title="Net Profit"
           value={formatBDT(netProfit)}
-          description="Gross profit minus BDT expenses"
+          description="Gross profit minus BDT expenses and business-paid delivery cost"
         />
         <MetricCard
           title="Profit Margin"
           value={formatPercent(profitMargin)}
           description="Gross profit as share of revenue"
         />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <p className="eyebrow-label">Delivery Signals</p>
+          <h2 className="text-xl font-semibold tracking-[-0.03em]">
+            Fulfilment volume, completion, and delivery cost pressure
+          </h2>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <MetricCard
+            title="Pending Deliveries"
+            value={formatQuantity(pendingDeliveriesCount)}
+            description="Orders waiting to leave fulfilment."
+          />
+          <MetricCard
+            title="Shipped Deliveries"
+            value={formatQuantity(shippedDeliveriesCount)}
+            description="Orders currently in transit."
+          />
+          <MetricCard
+            title="Delivered Orders"
+            value={formatQuantity(deliveredDeliveriesCount)}
+            description="Completed delivery records."
+          />
+          <MetricCard
+            title="Business Delivery Cost"
+            value={formatBDT(businessPaidDeliveryCost)}
+            description="Only business-paid deliveries reduce profit."
+          />
+          <MetricCard
+            title="Completion Rate"
+            value={formatPercent(deliveryCompletionRate)}
+            description="Delivered share of non-cancelled deliveries."
+          />
         </div>
       </section>
 

@@ -34,7 +34,22 @@ type SaleRow = {
   customers: {
     name: string
     phone: string
+    created_by: string | null
   } | null
+  sales_deliveries:
+    | {
+        id: string
+        status: "pending" | "shipped" | "delivered" | "cancelled"
+        delivery_method: string | null
+        tracking_number: string | null
+        delivery_cost: number
+        delivery_cost_paid_by: "business" | "customer"
+        shipped_at: string | null
+        delivered_at: string | null
+        notes: string | null
+        created_by: string | null
+      }[]
+    | null
   products: {
     name: string
   } | null
@@ -48,7 +63,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
   const { data: sales, error } = await supabase
     .from("sales")
     .select(
-      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_id, customer_name, customers(name, phone), products(name)",
+      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_id, customer_name, customers(name, phone, created_by), sales_deliveries(id, status, delivery_method, tracking_number, delivery_cost, delivery_cost_paid_by, shipped_at, delivered_at, notes, created_by), products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<SaleRow[]>()
@@ -59,6 +74,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
 
   const saleRows: SaleTableRow[] = (sales ?? []).map((sale) => {
     const discount = Number(sale.discount ?? 0)
+    const delivery = sale.sales_deliveries?.[0] ?? null
 
     return {
       id: sale.id,
@@ -73,6 +89,17 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
       customerId: sale.customer_id,
       customerName: sale.customers?.name ?? sale.customer_name,
       customerPhone: sale.customers?.phone ?? null,
+      customerCreatedBy: sale.customers?.created_by ?? null,
+      deliveryId: delivery?.id ?? null,
+      deliveryStatus: delivery?.status ?? null,
+      deliveryMethod: delivery?.delivery_method ?? null,
+      deliveryTrackingNumber: delivery?.tracking_number ?? null,
+      deliveryCost: delivery ? Number(delivery.delivery_cost) : null,
+      deliveryCostPaidBy: delivery?.delivery_cost_paid_by ?? null,
+      deliveryShippedAt: delivery?.shipped_at ?? null,
+      deliveryDeliveredAt: delivery?.delivered_at ?? null,
+      deliveryNotes: delivery?.notes ?? null,
+      deliveryCreatedBy: delivery?.created_by ?? null,
       status: sale.status,
       voidedAt: sale.voided_at,
       voidReason: sale.void_reason,
@@ -81,6 +108,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
 
   const saleExportRows = (sales ?? []).map((sale) => {
     const discount = Number(sale.discount ?? 0)
+    const delivery = sale.sales_deliveries?.[0] ?? null
 
     return {
       productName: sale.products?.name ?? "Unknown product",
@@ -93,6 +121,9 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
       status: sale.status,
       customer_name: sale.customers?.name ?? sale.customer_name,
       customer_phone: sale.customers?.phone ?? null,
+      delivery_status: delivery?.status ?? null,
+      delivery_cost: delivery ? Number(delivery.delivery_cost) : null,
+      delivery_cost_paid_by: delivery?.delivery_cost_paid_by ?? null,
     }
   })
 

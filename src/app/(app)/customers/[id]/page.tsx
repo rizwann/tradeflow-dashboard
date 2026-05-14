@@ -67,6 +67,8 @@ type DeliveryRow = {
   id: string
   sale_id: string
   status: "pending" | "shipped" | "delivered" | "cancelled"
+  delivery_method: string | null
+  tracking_number: string | null
   delivery_cost: number
   delivery_cost_paid_by: "business" | "customer"
   shipped_at: string | null
@@ -212,7 +214,7 @@ export default async function CustomerDetailPage({
     supabase
       .from("sales_deliveries")
       .select(
-        "id, sale_id, status, delivery_cost, delivery_cost_paid_by, shipped_at, delivered_at, created_at",
+        "id, sale_id, status, delivery_method, tracking_number, delivery_cost, delivery_cost_paid_by, shipped_at, delivered_at, created_at",
       )
       .eq("customer_id", id)
       .order("created_at", { ascending: false })
@@ -578,6 +580,14 @@ export default async function CustomerDetailPage({
                           <p className="mt-1 text-xs text-muted-foreground">
                             Paid by {formatLabel(delivery.delivery_cost_paid_by)}
                           </p>
+                          {delivery.delivery_method ? (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {delivery.delivery_method}
+                              {delivery.tracking_number
+                                ? ` · ${delivery.tracking_number}`
+                                : ""}
+                            </p>
+                          ) : null}
                         </div>
                         <div className="surface-tile px-3 py-3">
                           <div className="flex items-center gap-2 text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">

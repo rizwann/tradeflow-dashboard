@@ -30,6 +30,12 @@ type ExpenseRow = {
   date: string
 }
 
+type DeliveryCostRow = {
+  status: "pending" | "shipped" | "delivered" | "cancelled"
+  delivery_cost: number
+  delivery_cost_paid_by: "business" | "customer"
+}
+
 type ShipmentProfitSourceRow = {
   id: string
   shipment_code: string
@@ -102,6 +108,11 @@ export default async function ReportsPage() {
     .select("amount, currency, date")
     .returns<ExpenseRow[]>()
 
+  const { data: deliveries, error: deliveriesError } = await supabase
+    .from("sales_deliveries")
+    .select("status, delivery_cost, delivery_cost_paid_by")
+    .returns<DeliveryCostRow[]>()
+
   const { data: shipmentProfitSource, error: shipmentProfitError } =
     await supabase
       .from("shipments")
@@ -117,7 +128,13 @@ export default async function ReportsPage() {
       )
       .returns<ShipmentProfitSourceRow[]>()
 
-  if (salesError || saleBatchError || expensesError || shipmentProfitError) {
+  if (
+    salesError ||
+    saleBatchError ||
+    expensesError ||
+    deliveriesError ||
+    shipmentProfitError
+  ) {
     return (
       <ErrorState
         title="Could not load reports"
@@ -125,6 +142,7 @@ export default async function ReportsPage() {
           salesError?.message ??
           saleBatchError?.message ??
           expensesError?.message ??
+          deliveriesError?.message ??
           shipmentProfitError?.message ??
           "Please refresh the page or try again later."
         }
@@ -252,7 +270,18 @@ export default async function ReportsPage() {
     return sum + expense.amount
   }, 0)
 
-  const netProfit = totalGrossProfit - totalExpenses
+  const businessPaidDeliveryCost = (deliveries ?? []).reduce((sum, delivery) => {
+    if (
+      delivery.delivery_cost_paid_by !== "business" ||
+      delivery.status === "cancelled"
+    ) {
+      return sum
+    }
+
+    return sum + Number(delivery.delivery_cost)
+  }, 0)
+
+  const netProfit = totalGrossProfit - totalExpenses - businessPaidDeliveryCost
 
   const monthlyMap = new Map<
     string,
@@ -328,7 +357,7 @@ export default async function ReportsPage() {
         <MetricCard
           title="Net Profit"
           value={formatBDT(netProfit)}
-          description="Gross profit minus BDT expenses"
+          description="Gross profit minus BDT expenses and business-paid delivery costs"
         />
       </div>
 
