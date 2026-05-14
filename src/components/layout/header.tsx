@@ -22,7 +22,7 @@ export function Header({ fullName, role }: HeaderProps) {
   const initials = getInitials(fullName)
 
   return (
-    <header className="sticky top-0 z-40 min-w-0 px-3 pt-3 sm:px-4 lg:px-6">
+    <header className="sticky top-0 z-40 min-w-0 shrink-0 px-3 pt-3 sm:px-4 lg:px-6">
       <div className="surface-panel mx-auto flex h-16 min-w-0 max-w-[1640px] items-center justify-between gap-3 bg-background/68 px-3 sm:px-4 lg:h-[4.75rem] lg:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <MobileNav role={role} />

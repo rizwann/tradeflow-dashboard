@@ -4,10 +4,13 @@ import { SaleForm } from "@/features/sales/sale-form"
 export default async function NewSalePage() {
   const supabase = await createClient()
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, name")
-    .order("name")
+  const [{ data: products }, { data: customers }] = await Promise.all([
+    supabase.from("products").select("id, name").order("name"),
+    supabase
+      .from("customers")
+      .select("id, name, phone, city")
+      .order("created_at", { ascending: false }),
+  ])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -19,7 +22,7 @@ export default async function NewSalePage() {
       </div>
 
       <div className="rounded-xl border bg-background p-6 shadow-sm">
-        <SaleForm products={products ?? []} />
+        <SaleForm products={products ?? []} customers={customers ?? []} />
       </div>
     </div>
   )

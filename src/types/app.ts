@@ -7,6 +7,7 @@ import {
   Plane,
   Receipt,
   ShoppingCart,
+  Users,
 } from "lucide-react"
 
 export type UserRole = "admin" | "partner"
@@ -53,6 +54,12 @@ export const navItems: NavItem[] = [
     title: "Sales",
     href: "/sales",
     icon: ShoppingCart,
+    roles: ["admin", "partner"],
+  },
+  {
+    title: "Customers",
+    href: "/customers",
+    icon: Users,
     roles: ["admin", "partner"],
   },
   {

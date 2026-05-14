@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { SaleTableActions } from "./sale-table-actions"
@@ -19,6 +20,9 @@ export type SaleTableRow = {
   paymentStatus: "paid" | "unpaid" | "partial"
   saleDate: string
   soldBy: string
+  customerId: string | null
+  customerName: string | null
+  customerPhone: string | null
   status: "active" | "voided"
   voidedAt: string | null
   voidReason: string | null
@@ -67,6 +71,12 @@ function SaleMobileCard({
           <p className="mt-1 text-xs text-muted-foreground">
             {formatDate(sale.saleDate)}
           </p>
+          {sale.customerName ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {sale.customerName}
+              {sale.customerPhone ? ` · ${sale.customerPhone}` : ""}
+            </p>
+          ) : null}
         </div>
         <Badge variant={sale.status === "voided" ? "secondary" : "outline"}>
           {formatSaleStatus(sale.status)}
@@ -142,6 +152,37 @@ function getColumns(
         ) : null}
       </div>
     ),
+  },
+  {
+    accessorKey: "customerName",
+    header: ({ column }) => <SortableHeader column={column} title="Customer" />,
+    cell: ({ row }) => {
+      if (!row.original.customerName) {
+        return "—"
+      }
+
+      const content = (
+        <div>
+          <div className="font-medium">{row.original.customerName}</div>
+          {row.original.customerPhone ? (
+            <div className="text-xs text-muted-foreground">
+              {row.original.customerPhone}
+            </div>
+          ) : null}
+        </div>
+      )
+
+      return row.original.customerId ? (
+        <Link
+          href={`/customers/${row.original.customerId}`}
+          className="transition-colors hover:text-primary"
+        >
+          {content}
+        </Link>
+      ) : (
+        content
+      )
+    },
   },
   {
     accessorKey: "quantity",
@@ -228,7 +269,7 @@ export function SaleTable({
       columns={getColumns(currentUserId, currentUserRole)}
       data={sales}
       searchKey="productName"
-      searchPlaceholder="Search sales by product or payment status..."
+      searchPlaceholder="Search sales by product, customer, or payment status..."
       emptyTitle="No sales yet"
       emptyDescription="Record your first sale after receiving inventory in Bangladesh."
       mobileCardRenderer={(sale) => (

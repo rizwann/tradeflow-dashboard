@@ -25,6 +25,9 @@ describe("SaleTable", () => {
           {
             id: "1",
             productName: "Soap",
+            customerId: "cust-1",
+            customerName: "Rahim Traders",
+            customerPhone: "+8801712345678",
             quantity: 1,
             unitSellingPriceBdt: 1200,
             discount: 0,
@@ -43,6 +46,7 @@ describe("SaleTable", () => {
     )
 
     expect(screen.getAllByRole("button", { name: /void sale for soap/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Rahim Traders").length).toBeGreaterThan(0)
   })
 
   it("shows voided state and reason for voided sales", () => {
@@ -52,6 +56,9 @@ describe("SaleTable", () => {
           {
             id: "1",
             productName: "Soap",
+            customerId: null,
+            customerName: null,
+            customerPhone: null,
             quantity: 1,
             unitSellingPriceBdt: 1200,
             discount: 0,
