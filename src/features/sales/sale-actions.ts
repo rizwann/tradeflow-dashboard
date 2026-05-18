@@ -10,19 +10,41 @@ export type SaleActionState = {
   message: string
 }
 
+type RawSaleItem = {
+  product_id?: FormDataEntryValue | null
+  quantity?: FormDataEntryValue | null
+  unit_selling_price_bdt?: FormDataEntryValue | null
+  discount?: FormDataEntryValue | null
+}
+
 function mapSaleErrorMessage(message: string) {
   const normalizedMessage = message.toLowerCase()
 
   if (normalizedMessage.includes("no bangladesh inventory")) {
-    return "No Bangladesh inventory exists for this product."
+    return "No Bangladesh inventory exists for one of the selected products."
   }
 
   if (normalizedMessage.includes("not enough bangladesh inventory")) {
-    return "Not enough Bangladesh inventory is available for this sale."
+    return "Not enough Bangladesh inventory is available for one of the selected products."
   }
 
   if (normalizedMessage.includes("not enough fifo batch inventory")) {
-    return "Not enough FIFO batch inventory is available for this sale."
+    return "Not enough FIFO batch inventory is available for one of the selected products."
+  }
+
+  if (
+    normalizedMessage.includes("product is required") ||
+    normalizedMessage.includes("null value in column \"product_id\"")
+  ) {
+    return "Select a product for every sale line."
+  }
+
+  if (normalizedMessage.includes("invalid input syntax for type uuid")) {
+    return "A selected customer or product is invalid. Please re-select it and try again."
+  }
+
+  if (normalizedMessage.includes("customer")) {
+    return "Select an existing customer or create a new one."
   }
 
   if (normalizedMessage.includes("sale not found")) {
@@ -40,6 +62,42 @@ function mapSaleErrorMessage(message: string) {
   return message
 }
 
+function parseSaleItemsFromFormData(formData: FormData) {
+  const itemsByIndex = new Map<number, RawSaleItem>()
+
+  for (const [key, value] of formData.entries()) {
+    const match = /^items\.(\d+)\.(product_id|quantity|unit_selling_price_bdt|discount)$/.exec(
+      key,
+    )
+
+    if (!match) continue
+
+    const index = Number(match[1])
+    const field = match[2] as keyof RawSaleItem
+    const currentItem = itemsByIndex.get(index) ?? {}
+
+    currentItem[field] = value
+    itemsByIndex.set(index, currentItem)
+  }
+
+  return Array.from(itemsByIndex.entries())
+    .sort((left, right) => left[0] - right[0])
+    .map(([, item]) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_selling_price_bdt: item.unit_selling_price_bdt,
+      discount: item.discount ?? "0",
+    }))
+}
+
+function getValidationErrorMessage(error: ReturnType<typeof saleSchema.safeParse>) {
+  if (error.success) {
+    return "Please check the sale form and try again."
+  }
+
+  return error.error.issues[0]?.message ?? "Please check the sale form and try again."
+}
+
 export async function createSale(
   _prevState: SaleActionState,
   formData: FormData,
@@ -49,10 +107,6 @@ export async function createSale(
     const supabase = await createClient()
 
     const raw = {
-      product_id: formData.get("product_id"),
-      quantity: formData.get("quantity"),
-      unit_selling_price_bdt: formData.get("unit_selling_price_bdt"),
-      discount: formData.get("discount") || "0",
       sale_date: formData.get("sale_date"),
       customer_id: formData.get("customer_id") || undefined,
       customer_name: formData.get("customer_name") || undefined,
@@ -61,6 +115,7 @@ export async function createSale(
       customer_city: formData.get("customer_city") || undefined,
       payment_status: formData.get("payment_status"),
       notes: formData.get("notes") || undefined,
+      items: parseSaleItemsFromFormData(formData),
     }
 
     const parsed = saleSchema.safeParse(raw)
@@ -68,12 +123,11 @@ export async function createSale(
     if (!parsed.success) {
       return {
         success: false,
-        message: "Please check the sale form and try again.",
+        message: getValidationErrorMessage(parsed),
       }
     }
 
     let customerId = parsed.data.customer_id
-    let customerName = parsed.data.customer_name ?? ""
     let createdCustomerId: string | null = null
     let createdCustomerName: string | null = null
 
@@ -81,9 +135,9 @@ export async function createSale(
       const { data: existingCustomer, error: existingCustomerError } =
         await supabase
           .from("customers")
-          .select("id, name")
+          .select("id")
           .eq("id", customerId)
-          .maybeSingle<{ id: string; name: string }>()
+          .maybeSingle<{ id: string }>()
 
       if (existingCustomerError) {
         return {
@@ -98,8 +152,6 @@ export async function createSale(
           message: "Selected customer could not be found.",
         }
       }
-
-      customerName = existingCustomer.name
     } else {
       const { data: customer, error: customerError } = await supabase
         .from("customers")
@@ -121,7 +173,6 @@ export async function createSale(
       }
 
       customerId = customer.id
-      customerName = customer.name
       createdCustomerId = customer.id
       createdCustomerName = customer.name
 
@@ -147,17 +198,18 @@ export async function createSale(
       }
     }
 
-    const { error } = await supabase.rpc("record_sale_with_customer_link", {
-      p_product_id: parsed.data.product_id,
-      p_quantity: parsed.data.quantity,
-      p_unit_selling_price_bdt: parsed.data.unit_selling_price_bdt,
-      p_discount: parsed.data.discount,
+    const { error } = await supabase.rpc("record_multi_product_sale_with_fifo", {
+      p_customer_id: customerId,
       p_sale_date: parsed.data.sale_date,
       p_sold_by: session.user.id,
-      p_customer_id: customerId,
-      p_customer_name: customerName,
       p_payment_status: parsed.data.payment_status,
       p_notes: parsed.data.notes ?? "",
+      p_items: parsed.data.items.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_selling_price_bdt: item.unit_selling_price_bdt,
+        discount: item.discount,
+      })),
     })
 
     if (error) {
