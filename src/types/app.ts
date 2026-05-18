@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Truck,
   Users,
+  Wallet,
 } from "lucide-react"
 
 export type UserRole = "admin" | "partner"
@@ -32,6 +33,12 @@ export const navItems: NavItem[] = [
     href: "/products",
     icon: Package,
     roles: ["admin"],
+  },
+  {
+    title: "Customers",
+    href: "/customers",
+    icon: Users,
+    roles: ["admin", "partner"],
   },
   {
     title: "Inventory",
@@ -58,12 +65,6 @@ export const navItems: NavItem[] = [
     roles: ["admin", "partner"],
   },
   {
-    title: "Customers",
-    href: "/customers",
-    icon: Users,
-    roles: ["admin", "partner"],
-  },
-  {
     title: "Deliveries",
     href: "/deliveries",
     icon: Truck,
@@ -81,10 +82,10 @@ export const navItems: NavItem[] = [
     icon: BarChart3,
     roles: ["admin", "partner"],
   },
-  // {
-  //   title: "Accounting",
-  //   href: "/accounting",
-  //   icon: Wallet,
-  //   roles: ["admin"],                 // For Future....
-  // },
+  {
+    title: "Accounting",
+    href: "/accounting",
+    icon: Wallet,
+    roles: ["admin"],
+  },
 ]

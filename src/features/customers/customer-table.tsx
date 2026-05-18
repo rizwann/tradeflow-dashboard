@@ -7,6 +7,7 @@ import { Eye, PencilLine } from "lucide-react"
 import { DataTable } from "@/components/shared/data-table"
 import { EmptyState } from "@/components/shared/empty-state"
 import { SortableHeader } from "@/components/shared/sortable-header"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { UserRole } from "@/types/app"
 
@@ -21,6 +22,8 @@ export type CustomerSummaryRow = {
   createdBy: string | null
   ordersCount: number
   totalRevenue: number
+  totalProfit: number
+  lastOrderDate: string | null
 }
 
 type CustomerTableProps = {
@@ -78,6 +81,11 @@ function CustomerMobileCard({
           >
             {customer.name}
           </Link>
+          {customer.ordersCount > 1 ? (
+            <Badge variant="outline" className="mt-2">
+              Returning customer
+            </Badge>
+          ) : null}
           <p className="mt-1 text-xs text-muted-foreground">{customer.phone}</p>
         </div>
 
@@ -138,10 +146,10 @@ function CustomerMobileCard({
         </div>
         <div className="surface-tile px-3 py-3">
           <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-            Added
+            Last Order
           </p>
           <p className="mt-2 text-sm font-medium">
-            {formatDate(customer.createdAt)}
+            {formatDate(customer.lastOrderDate)}
           </p>
         </div>
       </div>
@@ -165,6 +173,11 @@ function getColumns(
           >
             {row.original.name}
           </Link>
+          {row.original.ordersCount > 1 ? (
+            <div className="mt-1">
+              <Badge variant="outline">Returning customer</Badge>
+            </div>
+          ) : null}
           <p className="text-xs text-muted-foreground">{row.original.phone}</p>
         </div>
       ),
@@ -201,11 +214,11 @@ function getColumns(
       ),
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "lastOrderDate",
       header: ({ column }) => (
-        <SortableHeader column={column} title="Created at" />
+        <SortableHeader column={column} title="Last order date" />
       ),
-      cell: ({ row }) => formatDate(row.original.createdAt),
+      cell: ({ row }) => formatDate(row.original.lastOrderDate),
     },
     {
       id: "actions",

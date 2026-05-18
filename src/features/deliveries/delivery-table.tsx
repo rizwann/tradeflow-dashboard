@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/shared/data-table"
@@ -80,7 +81,16 @@ function DeliveryMobileCard({
     <div className="surface-panel-subtle rounded-[1.45rem] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-semibold tracking-[-0.02em]">{row.customerName}</p>
+          {row.customerId ? (
+            <Link
+              href={`/customers/${row.customerId}`}
+              className="font-semibold tracking-[-0.02em] transition-colors hover:text-primary"
+            >
+              {row.customerName}
+            </Link>
+          ) : (
+            <p className="font-semibold tracking-[-0.02em]">{row.customerName}</p>
+          )}
           <p className="mt-1 text-xs text-muted-foreground">{row.productName}</p>
         </div>
         <DeliveryStatusBadge status={row.status} />
@@ -103,6 +113,12 @@ function DeliveryMobileCard({
           <p className="mt-2 text-sm font-medium">
             {row.deliveryMethod ?? "Not set"}
           </p>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Sale Date
+          </p>
+          <p className="mt-2 text-sm font-medium">{formatDate(row.saleDate)}</p>
         </div>
         <div className="surface-tile px-3 py-3">
           <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
@@ -253,7 +269,7 @@ export function DeliveryTable({
     return (
       <EmptyState
         title="No deliveries yet"
-        description="Add delivery tracking from the sales table once orders need fulfilment."
+        description="Add delivery tracking from the sales table once an order needs fulfilment."
       />
     )
   }

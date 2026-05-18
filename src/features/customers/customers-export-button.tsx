@@ -9,6 +9,8 @@ type CustomerExportRow = {
   address: string | null
   ordersCount: number
   totalRevenue: number
+  totalProfit: number
+  lastOrderDate: string | null
   createdAt: string | null
   notes: string | null
 }
@@ -29,6 +31,8 @@ export function CustomersExportButton({
         { label: "Address", value: (row) => row.address ?? "" },
         { label: "Orders Count", value: (row) => row.ordersCount },
         { label: "Total Revenue BDT", value: (row) => row.totalRevenue },
+        { label: "Total Profit BDT", value: (row) => row.totalProfit },
+        { label: "Last Order Date", value: (row) => row.lastOrderDate ?? "" },
         { label: "Created At", value: (row) => row.createdAt ?? "" },
         { label: "Notes", value: (row) => row.notes ?? "" },
       ]}

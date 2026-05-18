@@ -20,14 +20,33 @@ type ShipmentProfitExportRow = {
   margin: number
 }
 
+type CustomerPerformanceExportRow = {
+  customerName: string
+  ordersCount: number
+  revenue: number
+  profit: number
+  averageOrderValue: number
+  lastOrderDate: string | null
+}
+
+type DeliveryPerformanceExportRow = {
+  status: string
+  deliveryCost: number
+  deliveryCostPaidBy: string
+}
+
 type ReportsExportButtonsProps = {
   productRows: ProductProfitExportRow[]
   shipmentRows: ShipmentProfitExportRow[]
+  customerRows: CustomerPerformanceExportRow[]
+  deliveryRows: DeliveryPerformanceExportRow[]
 }
 
 export function ReportsExportButtons({
   productRows,
   shipmentRows,
+  customerRows,
+  deliveryRows,
 }: ReportsExportButtonsProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -55,6 +74,29 @@ export function ReportsExportButtons({
           { label: "Landed Cost", value: (row) => row.landedCost },
           { label: "Gross Profit", value: (row) => row.grossProfit },
           { label: "Margin", value: (row) => row.margin },
+        ]}
+      />
+      <ExportButton
+        filename="tradeflow-report-customer-performance.csv"
+        rows={customerRows}
+        label="Export Customer Performance"
+        columns={[
+          { label: "Customer", value: (row) => row.customerName },
+          { label: "Orders Count", value: (row) => row.ordersCount },
+          { label: "Revenue", value: (row) => row.revenue },
+          { label: "Profit", value: (row) => row.profit },
+          { label: "Average Order Value", value: (row) => row.averageOrderValue },
+          { label: "Last Order Date", value: (row) => row.lastOrderDate ?? "" },
+        ]}
+      />
+      <ExportButton
+        filename="tradeflow-report-delivery-performance.csv"
+        rows={deliveryRows}
+        label="Export Delivery Performance"
+        columns={[
+          { label: "Status", value: (row) => row.status },
+          { label: "Delivery Cost", value: (row) => row.deliveryCost },
+          { label: "Paid By", value: (row) => row.deliveryCostPaidBy },
         ]}
       />
     </div>

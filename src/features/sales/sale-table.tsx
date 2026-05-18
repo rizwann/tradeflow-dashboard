@@ -92,7 +92,16 @@ function SaleMobileCard({
           </p>
           {sale.customerName ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              {sale.customerName}
+              {sale.customerId ? (
+                <Link
+                  href={`/customers/${sale.customerId}`}
+                  className="transition-colors hover:text-primary"
+                >
+                  {sale.customerName}
+                </Link>
+              ) : (
+                sale.customerName
+              )}
               {sale.customerPhone ? ` · ${sale.customerPhone}` : ""}
             </p>
           ) : null}
@@ -130,6 +139,20 @@ function SaleMobileCard({
         </div>
         <div className="surface-tile px-3 py-3">
           <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            Delivery
+          </p>
+          <div className="mt-2">
+            {sale.deliveryStatus ? (
+              <DeliveryStatusBadge status={sale.deliveryStatus} />
+            ) : (
+              <p className="text-sm font-medium text-muted-foreground">
+                Not started
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="surface-tile px-3 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             Unit Price
           </p>
           <p className="mt-2 text-sm font-medium">
@@ -138,12 +161,9 @@ function SaleMobileCard({
         </div>
       </div>
 
-      {sale.deliveryStatus ? (
+      {sale.deliveryStatus && sale.deliveryCost != null && sale.deliveryCostPaidBy ? (
         <p className="mt-3 text-sm text-muted-foreground">
-          Delivery: {sale.deliveryStatus}
-          {sale.deliveryCost != null && sale.deliveryCostPaidBy
-            ? ` · ${formatBDT(sale.deliveryCost)} · ${sale.deliveryCostPaidBy}`
-            : ""}
+          {formatBDT(sale.deliveryCost)} · {sale.deliveryCostPaidBy} paid
         </p>
       ) : null}
 

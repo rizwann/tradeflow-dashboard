@@ -39,6 +39,7 @@ export type CustomerLeaderboardRow = {
   ordersCount: number
   revenue: number
   profit: number
+  averageOrderValue: number
   lastOrderDate: string | null
 }
 
@@ -63,6 +64,7 @@ export type DeliveryInsights = {
   nonCancelledDeliveries: number
   completionRate: number
   businessPaidDeliveryCost: number
+  customerPaidDeliveryCost: number
   averageDeliveryCost: number
   customerPaidDeliveryPercentage: number
 }
@@ -79,11 +81,15 @@ export type CustomerDetailInsights = {
   totalOrders: number
   activeOrders: number
   totalRevenue: number
+  totalProfit: number
   averageOrderValue: number
   lastOrderDate: string | null
   deliveredOrders: number
   pendingDeliveries: number
   totalDeliverySpend: number
+  latestDeliveryStatus:
+    | DeliveryAnalyticsRow["status"]
+    | null
   favoriteProduct:
     | {
         productName: string
@@ -170,6 +176,7 @@ export function calculateCustomerInsights(params: {
       ordersCount: 0,
       revenue: 0,
       profit: 0,
+      averageOrderValue: 0,
       lastOrderDate: null,
     }
 
@@ -184,13 +191,19 @@ export function calculateCustomerInsights(params: {
     leaderboardMap.set(sale.customerId, existing)
   }
 
-  const topCustomers = Array.from(leaderboardMap.values()).sort((left, right) => {
-    return (
-      right.revenue - left.revenue ||
-      right.ordersCount - left.ordersCount ||
-      left.customerName.localeCompare(right.customerName)
-    )
-  })
+  const topCustomers = Array.from(leaderboardMap.values())
+    .map((customer) => ({
+      ...customer,
+      averageOrderValue:
+        customer.ordersCount === 0 ? 0 : customer.revenue / customer.ordersCount,
+    }))
+    .sort((left, right) => {
+      return (
+        right.revenue - left.revenue ||
+        right.ordersCount - left.ordersCount ||
+        left.customerName.localeCompare(right.customerName)
+      )
+    })
 
   const returningCustomers = topCustomers.filter(
     (customer) => customer.ordersCount > 1,
@@ -250,6 +263,17 @@ export function calculateDeliveryInsights(deliveries: DeliveryAnalyticsRow[]) {
     return sum + Number(delivery.deliveryCost)
   }, 0)
 
+  const customerPaidDeliveryCost = deliveries.reduce((sum, delivery) => {
+    if (
+      delivery.status === "cancelled" ||
+      delivery.deliveryCostPaidBy !== "customer"
+    ) {
+      return sum
+    }
+
+    return sum + Number(delivery.deliveryCost)
+  }, 0)
+
   const totalNonCancelledCost = deliveries.reduce((sum, delivery) => {
     if (delivery.status === "cancelled") {
       return sum
@@ -274,6 +298,7 @@ export function calculateDeliveryInsights(deliveries: DeliveryAnalyticsRow[]) {
         ? 0
         : (deliveredDeliveries / nonCancelledDeliveries) * 100,
     businessPaidDeliveryCost,
+    customerPaidDeliveryCost,
     averageDeliveryCost:
       nonCancelledDeliveries === 0 ? 0 : totalNonCancelledCost / nonCancelledDeliveries,
     customerPaidDeliveryPercentage:
@@ -325,9 +350,13 @@ export function calculateLeastSellingProducts(params: {
 export function calculateCustomerDetailInsights(params: {
   sales: CustomerAnalyticsSale[]
   deliveries: DeliveryAnalyticsRow[]
+  saleProfits?: CustomerSaleProfit[]
 }) {
   const totalOrders = params.sales.length
   const activeSales = params.sales
+  const totalProfit = (params.saleProfits ?? []).reduce((sum, saleProfit) => {
+    return sum + Number(saleProfit.grossProfit)
+  }, 0)
   const totalRevenue = activeSales.reduce((sum, sale) => {
     return (
       sum +
@@ -374,10 +403,13 @@ export function calculateCustomerDetailInsights(params: {
     return latest
   }, null)
 
+  const latestDeliveryStatus = params.deliveries[0]?.status ?? null
+
   return {
     totalOrders,
     activeOrders: activeSales.length,
     totalRevenue,
+    totalProfit,
     averageOrderValue:
       activeSales.length === 0 ? 0 : totalRevenue / activeSales.length,
     lastOrderDate,
@@ -394,6 +426,7 @@ export function calculateCustomerDetailInsights(params: {
 
       return sum + Number(delivery.deliveryCost)
     }, 0),
+    latestDeliveryStatus,
     favoriteProduct,
   } satisfies CustomerDetailInsights
 }
