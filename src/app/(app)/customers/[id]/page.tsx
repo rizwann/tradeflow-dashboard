@@ -30,6 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  calculateCustomerDetailInsights,
+  calculateSaleRevenue,
+} from "@/features/analytics/customer-delivery-analytics"
 import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 
@@ -52,6 +56,7 @@ type CustomerRecord = {
 
 type CustomerSaleRow = {
   id: string
+  product_id: string
   quantity: number
   unit_selling_price_bdt: number
   discount: number | null
@@ -206,7 +211,7 @@ export default async function CustomerDetailPage({
     supabase
       .from("sales")
       .select(
-        "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, status, products(name)",
+        "id, product_id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, status, products(name)",
       )
       .eq("customer_id", id)
       .order("sale_date", { ascending: false })
@@ -234,17 +239,35 @@ export default async function CustomerDetailPage({
 
   const salesWithRevenue = (sales ?? []).map((sale) => ({
     ...sale,
-    revenue:
-      Number(sale.quantity) * Number(sale.unit_selling_price_bdt) -
-      Number(sale.discount ?? 0),
+    revenue: calculateSaleRevenue({
+      quantity: Number(sale.quantity),
+      unitSellingPriceBdt: Number(sale.unit_selling_price_bdt),
+      discount: sale.discount,
+    }),
   }))
 
   const totalOrders = salesWithRevenue.length
   const activeOrders = salesWithRevenue.filter(
     (sale) => sale.status === "active",
   )
-  const totalRevenue = activeOrders.reduce((sum, sale) => sum + sale.revenue, 0)
-  const lastOrderDate = salesWithRevenue[0]?.sale_date ?? null
+  const customerDetailInsights = calculateCustomerDetailInsights({
+    sales: activeOrders.map((sale) => ({
+      id: sale.id,
+      customerId: id,
+      customerName: customer.name,
+      productId: sale.product_id,
+      productName: sale.products?.name ?? null,
+      quantity: Number(sale.quantity),
+      unitSellingPriceBdt: Number(sale.unit_selling_price_bdt),
+      discount: sale.discount,
+      saleDate: sale.sale_date,
+    })),
+    deliveries: (deliveries ?? []).map((delivery) => ({
+      status: delivery.status,
+      deliveryCost: Number(delivery.delivery_cost),
+      deliveryCostPaidBy: delivery.delivery_cost_paid_by,
+    })),
+  })
   const salesById = new Map(salesWithRevenue.map((sale) => [sale.id, sale]))
 
   return (
@@ -291,7 +314,7 @@ export default async function CustomerDetailPage({
                   <h2 className="text-2xl font-semibold tracking-[-0.04em]">
                     {customer.name}
                   </h2>
-                  {totalOrders > 1 ? (
+                  {customerDetailInsights.activeOrders > 1 ? (
                     <Badge variant="outline">Returning customer</Badge>
                   ) : null}
                 </div>
@@ -316,7 +339,7 @@ export default async function CustomerDetailPage({
                   Latest Order
                 </p>
                 <p className="mt-2 text-base font-semibold tracking-tight">
-                  {formatDate(lastOrderDate)}
+                  {formatDate(customerDetailInsights.lastOrderDate)}
                 </p>
               </div>
             </div>
@@ -376,32 +399,49 @@ export default async function CustomerDetailPage({
         </Card>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total orders"
           value={totalOrders.toLocaleString("en-US")}
           description="All recorded orders, including voided sales."
         />
         <MetricCard
-          title="Active orders"
-          value={activeOrders.length.toLocaleString("en-US")}
-          description="Orders currently contributing to revenue."
-        />
-        <MetricCard
           title="Total revenue"
-          value={formatBDT(totalRevenue)}
+          value={formatBDT(customerDetailInsights.totalRevenue)}
           description="Revenue from active sales only."
         />
         <MetricCard
           title="Average order value"
-          value={formatBDT(
-            activeOrders.length > 0 ? totalRevenue / activeOrders.length : 0,
-          )}
+          value={formatBDT(customerDetailInsights.averageOrderValue)}
           description="Average value across active orders."
         />
         <MetricCard
+          title="Delivered orders"
+          value={customerDetailInsights.deliveredOrders.toLocaleString("en-US")}
+          description="Linked deliveries completed for this customer."
+        />
+        <MetricCard
+          title="Pending deliveries"
+          value={customerDetailInsights.pendingDeliveries.toLocaleString("en-US")}
+          description="Customer orders still waiting for fulfilment."
+        />
+        <MetricCard
+          title="Total delivery spend"
+          value={formatBDT(customerDetailInsights.totalDeliverySpend)}
+          description="Total non-cancelled delivery cost on linked deliveries."
+        />
+        <MetricCard
+          title="Favorite product"
+          value={customerDetailInsights.favoriteProduct?.productName ?? "No repeat product yet"}
+          description={
+            customerDetailInsights.favoriteProduct
+              ? `${customerDetailInsights.favoriteProduct.quantitySold.toLocaleString("en-US")} units across ${customerDetailInsights.favoriteProduct.ordersCount.toLocaleString("en-US")} active orders.`
+              : "More active sales are needed to surface a repeat product."
+          }
+        />
+        <MetricCard
           title="Last order date"
-          value={lastOrderDate ? formatDate(lastOrderDate) : "No orders yet"}
+          value={formatDate(customerDetailInsights.lastOrderDate)}
           description="Most recent linked sale date on record."
         />
       </section>
