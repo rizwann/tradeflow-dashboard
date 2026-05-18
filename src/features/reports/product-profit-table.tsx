@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 import { EmptyState } from "@/components/shared/empty-state"
 import {
   Table,
@@ -26,6 +28,10 @@ function formatBDT(value: number) {
   return `৳${Math.round(value).toLocaleString("en-US")}`
 }
 
+function getProductLinkClassName() {
+  return "min-w-0 font-semibold tracking-[-0.02em] transition-colors hover:text-primary hover:underline underline-offset-4"
+}
+
 export function ProductProfitTable({ rows }: ProductProfitTableProps) {
   if (rows.length === 0) {
     return (
@@ -42,12 +48,16 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
         {rows.map((row) => (
           <div
             key={row.productId}
-            className="surface-panel-subtle rounded-[1.45rem] p-4"
+            className="surface-panel-subtle rounded-[1.45rem] p-4 transition-colors hover:bg-muted/20"
           >
             <div className="flex items-start justify-between gap-3">
-              <p className="min-w-0 font-semibold tracking-[-0.02em]">
+              <Link
+                href={`/products/${row.productId}`}
+                aria-label={`View product details for ${row.productName}`}
+                className={getProductLinkClassName()}
+              >
                 {row.productName}
-              </p>
+              </Link>
               <p className="text-sm font-semibold">{row.margin.toFixed(1)}%</p>
             </div>
 
@@ -103,9 +113,15 @@ export function ProductProfitTable({ rows }: ProductProfitTableProps) {
 
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.productId}>
+                <TableRow key={row.productId} className="hover:bg-muted/20">
                   <TableCell className="max-w-56 whitespace-normal">
-                    <div className="font-medium">{row.productName}</div>
+                    <Link
+                      href={`/products/${row.productId}`}
+                      aria-label={`View product details for ${row.productName}`}
+                      className="font-medium transition-colors hover:text-primary hover:underline underline-offset-4"
+                    >
+                      {row.productName}
+                    </Link>
                   </TableCell>
                   <TableCell className="text-right">{row.quantitySold}</TableCell>
                   <TableCell className="text-right">

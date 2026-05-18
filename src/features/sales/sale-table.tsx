@@ -14,6 +14,7 @@ import type { UserRole } from "@/types/app"
 
 export type SaleTableRow = {
   id: string
+  productId: string
   productName: string
   quantity: number
   unitSellingPriceBdt: number
@@ -86,7 +87,13 @@ function SaleMobileCard({
     <div className="surface-panel-subtle rounded-[1.45rem] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-semibold tracking-[-0.02em]">{sale.productName}</p>
+          <Link
+            href={`/products/${sale.productId}`}
+            aria-label={`View product details for ${sale.productName}`}
+            className="font-semibold tracking-[-0.02em] transition-colors hover:text-primary hover:underline underline-offset-4"
+          >
+            {sale.productName}
+          </Link>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatDate(sale.saleDate)}
           </p>
@@ -221,7 +228,13 @@ function getColumns(
     header: ({ column }) => <SortableHeader column={column} title="Product" />,
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.productName}</div>
+        <Link
+          href={`/products/${row.original.productId}`}
+          aria-label={`View product details for ${row.original.productName}`}
+          className="font-medium transition-colors hover:text-primary hover:underline underline-offset-4"
+        >
+          {row.original.productName}
+        </Link>
         {row.original.status === "voided" && row.original.voidReason ? (
           <div className="text-xs text-muted-foreground">
             Reason: {row.original.voidReason}

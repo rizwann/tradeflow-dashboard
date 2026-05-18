@@ -32,6 +32,7 @@ describe("SaleTable", () => {
         sales={[
           {
             id: "1",
+            productId: "prod-1",
             productName: "Soap",
             customerId: "cust-1",
             customerName: "Rahim Traders",
@@ -79,6 +80,7 @@ describe("SaleTable", () => {
         sales={[
           {
             id: "1",
+            productId: "prod-1",
             productName: "Soap",
             customerId: null,
             customerName: null,

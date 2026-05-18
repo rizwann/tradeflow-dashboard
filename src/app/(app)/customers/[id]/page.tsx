@@ -526,9 +526,13 @@ export default async function CustomerDetailPage({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-semibold tracking-[-0.02em]">
+                          <Link
+                            href={`/products/${sale.product_id}`}
+                            aria-label={`View product details for ${sale.products?.name ?? "Unknown product"}`}
+                            className="font-semibold tracking-[-0.02em] transition-colors hover:text-primary hover:underline underline-offset-4"
+                          >
                             {sale.products?.name ?? "Unknown product"}
-                          </p>
+                          </Link>
                           <p className="mt-1 text-xs text-muted-foreground">
                             {formatDate(sale.sale_date)}
                           </p>
@@ -589,7 +593,13 @@ export default async function CustomerDetailPage({
                         {salesWithRevenue.map((sale) => (
                           <TableRow key={sale.id}>
                             <TableCell className="font-medium">
-                              {sale.products?.name ?? "Unknown product"}
+                              <Link
+                                href={`/products/${sale.product_id}`}
+                                aria-label={`View product details for ${sale.products?.name ?? "Unknown product"}`}
+                                className="transition-colors hover:text-primary hover:underline underline-offset-4"
+                              >
+                                {sale.products?.name ?? "Unknown product"}
+                              </Link>
                             </TableCell>
                             <TableCell className="text-right">
                               {sale.quantity.toLocaleString("en-US")}
@@ -648,9 +658,19 @@ export default async function CustomerDetailPage({
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-semibold tracking-[-0.02em]">
-                            {relatedSale?.products?.name ?? "Linked order"}
-                          </p>
+                          {relatedSale ? (
+                            <Link
+                              href={`/products/${relatedSale.product_id}`}
+                              aria-label={`View product details for ${relatedSale.products?.name ?? "Linked order"}`}
+                              className="font-semibold tracking-[-0.02em] transition-colors hover:text-primary hover:underline underline-offset-4"
+                            >
+                              {relatedSale.products?.name ?? "Linked order"}
+                            </Link>
+                          ) : (
+                            <p className="font-semibold tracking-[-0.02em]">
+                              Linked order
+                            </p>
+                          )}
                           <p className="mt-1 text-xs text-muted-foreground">
                             Sale date: {formatDate(relatedSale?.sale_date ?? null)}
                           </p>
