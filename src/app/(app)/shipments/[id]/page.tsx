@@ -497,7 +497,13 @@ export default async function ShipmentDetailPage({
                           key={`${item.product_id}-${index}`}
                         >
                           <TableCell className="font-medium">
-                            {item.products?.name ?? "Unknown product"}
+                            <Link
+                              href={`/products/${item.product_id}`}
+                              aria-label={`View product details for ${item.products?.name ?? "Unknown product"}`}
+                              className="transition-colors hover:text-primary hover:underline underline-offset-4"
+                            >
+                              {item.products?.name ?? "Unknown product"}
+                            </Link>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {item.products?.sku ?? "Not available"}
@@ -577,7 +583,13 @@ export default async function ShipmentDetailPage({
                         return (
                           <TableRow key={batch.id}>
                             <TableCell className="font-medium">
-                              {shipmentItem?.products?.name ?? batch.product_id}
+                              <Link
+                                href={`/products/${batch.product_id}`}
+                                aria-label={`View product details for ${shipmentItem?.products?.name ?? batch.product_id}`}
+                                className="transition-colors hover:text-primary hover:underline underline-offset-4"
+                              >
+                                {shipmentItem?.products?.name ?? batch.product_id}
+                              </Link>
                             </TableCell>
                             <TableCell className="text-right">
                               {formatNumber(originalQuantity)}

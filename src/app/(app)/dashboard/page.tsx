@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import Link from "next/link"
 
 import { EmptyState } from "@/components/shared/empty-state"
 import { ErrorState } from "@/components/shared/error-state"
@@ -241,6 +242,10 @@ function getStockBadgeLabel(total: number) {
   if (total <= 5) return "Low stock"
 
   return "Healthy"
+}
+
+function getProductLinkClassName() {
+  return "transition-colors hover:text-primary hover:underline underline-offset-4"
 }
 
 function DashboardTableCard(props: {
@@ -1020,9 +1025,19 @@ export default async function DashboardPage() {
           <CardContent className="space-y-3">
             <div className="surface-tile px-4 py-4">
               <p className="eyebrow-label">Top Revenue Driver</p>
-              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
-                {leadingRevenueProduct?.productName ?? "No sales yet"}
-              </p>
+              {leadingRevenueProduct ? (
+                <Link
+                  href={`/products/${leadingRevenueProduct.productId}`}
+                  aria-label={`View product details for ${leadingRevenueProduct.productName}`}
+                  className="mt-2 inline-block text-base font-semibold tracking-[-0.03em] transition-colors hover:text-primary hover:underline underline-offset-4"
+                >
+                  {leadingRevenueProduct.productName}
+                </Link>
+              ) : (
+                <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                  No sales yet
+                </p>
+              )}
               <p className="mt-1 text-sm text-muted-foreground/95">
                 {leadingRevenueProduct
                   ? `${formatQuantity(leadingRevenueProduct.quantitySold)} units · ${formatBDT(leadingRevenueProduct.revenue)} revenue`
@@ -1032,9 +1047,19 @@ export default async function DashboardPage() {
 
             <div className="surface-tile px-4 py-4">
               <p className="eyebrow-label">Top Profit Contributor</p>
-              <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
-                {leadingProfitProduct?.productName ?? "No FIFO data yet"}
-              </p>
+              {leadingProfitProduct ? (
+                <Link
+                  href={`/products/${leadingProfitProduct.productId}`}
+                  aria-label={`View product details for ${leadingProfitProduct.productName}`}
+                  className="mt-2 inline-block text-base font-semibold tracking-[-0.03em] transition-colors hover:text-primary hover:underline underline-offset-4"
+                >
+                  {leadingProfitProduct.productName}
+                </Link>
+              ) : (
+                <p className="mt-2 text-base font-semibold tracking-[-0.03em]">
+                  No FIFO data yet
+                </p>
+              )}
               <p className="mt-1 text-sm text-muted-foreground/95">
                 {leadingProfitProduct
                   ? `${formatBDT(leadingProfitProduct.grossProfit)} gross profit across ${formatQuantity(leadingProfitProduct.quantitySold)} units`
@@ -1089,9 +1114,15 @@ export default async function DashboardPage() {
             rows={
               topBestSellingProducts.length > 0
                 ? topBestSellingProducts.map((product) => (
-                    <TableRow key={product.productId}>
+                    <TableRow key={product.productId} className="hover:bg-muted/20">
                       <TableCell className="font-medium">
-                        {product.productName}
+                        <Link
+                          href={`/products/${product.productId}`}
+                          aria-label={`View product details for ${product.productName}`}
+                          className={getProductLinkClassName()}
+                        >
+                          {product.productName}
+                        </Link>
                       </TableCell>
                       <TableCell>{formatQuantity(product.quantitySold)}</TableCell>
                       <TableCell>{formatBDT(product.revenue)}</TableCell>
@@ -1110,9 +1141,15 @@ export default async function DashboardPage() {
             rows={
               topProfitableProducts.length > 0
                 ? topProfitableProducts.map((product) => (
-                    <TableRow key={product.productId}>
+                    <TableRow key={product.productId} className="hover:bg-muted/20">
                       <TableCell className="font-medium">
-                        {product.productName}
+                        <Link
+                          href={`/products/${product.productId}`}
+                          aria-label={`View product details for ${product.productName}`}
+                          className={getProductLinkClassName()}
+                        >
+                          {product.productName}
+                        </Link>
                       </TableCell>
                       <TableCell>{formatQuantity(product.quantitySold)}</TableCell>
                       <TableCell>{formatBDT(product.grossProfit)}</TableCell>
@@ -1131,10 +1168,16 @@ export default async function DashboardPage() {
             rows={
               leastSellingProducts.length > 0
                 ? leastSellingProducts.map((product) => (
-                    <TableRow key={product.productId}>
+                    <TableRow key={product.productId} className="hover:bg-muted/20">
                       <TableCell className="font-medium">
                         <div className="min-w-0">
-                          <p>{product.productName}</p>
+                          <Link
+                            href={`/products/${product.productId}`}
+                            aria-label={`View product details for ${product.productName}`}
+                            className={getProductLinkClassName()}
+                          >
+                            {product.productName}
+                          </Link>
                           <p className="text-xs text-muted-foreground">
                             {product.sku}
                           </p>
@@ -1157,9 +1200,15 @@ export default async function DashboardPage() {
             rows={
               lowStockAlerts.length > 0
                 ? lowStockAlerts.map((product) => (
-                    <TableRow key={product.productId}>
+                    <TableRow key={product.productId} className="hover:bg-muted/20">
                       <TableCell className="font-medium">
-                        {product.productName}
+                        <Link
+                          href={`/products/${product.productId}`}
+                          aria-label={`View product details for ${product.productName}`}
+                          className={getProductLinkClassName()}
+                        >
+                          {product.productName}
+                        </Link>
                       </TableCell>
                       <TableCell>{product.sku}</TableCell>
                       <TableCell>{formatQuantity(product.total)}</TableCell>

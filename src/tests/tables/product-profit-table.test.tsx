@@ -22,6 +22,10 @@ describe("ProductProfitTable", () => {
 
     expect(screen.getAllByText("Soap").length).toBeGreaterThan(0)
     expect(screen.getAllByText("30.0%").length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("link", { name: /view product details for soap/i })[0]).toHaveAttribute(
+      "href",
+      "/products/1",
+    )
   })
 
   it("renders empty state", () => {

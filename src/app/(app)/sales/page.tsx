@@ -20,6 +20,7 @@ type SalesPageProps = {
 
 type SaleRow = {
   id: string
+  product_id: string
   quantity: number
   unit_selling_price_bdt: number
   discount: number | null
@@ -63,7 +64,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
   const { data: sales, error } = await supabase
     .from("sales")
     .select(
-      "id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_id, customer_name, customers(name, phone, created_by), sales_deliveries(id, status, delivery_method, tracking_number, delivery_cost, delivery_cost_paid_by, shipped_at, delivered_at, notes, created_by), products(name)",
+      "id, product_id, quantity, unit_selling_price_bdt, discount, sale_date, payment_status, sold_by, status, voided_at, void_reason, customer_id, customer_name, customers(name, phone, created_by), sales_deliveries(id, status, delivery_method, tracking_number, delivery_cost, delivery_cost_paid_by, shipped_at, delivered_at, notes, created_by), products(name)",
     )
     .order("created_at", { ascending: false })
     .returns<SaleRow[]>()
@@ -78,6 +79,7 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
 
     return {
       id: sale.id,
+      productId: sale.product_id,
       productName: sale.products?.name ?? "Unknown product",
       quantity: sale.quantity,
       unitSellingPriceBdt: sale.unit_selling_price_bdt,
