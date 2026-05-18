@@ -67,6 +67,10 @@ describe("SaleTable", () => {
     expect(screen.getAllByRole("button", { name: /void sale for soap/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByText("Rahim Traders").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Manage delivery").length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("link", { name: /rahim traders/i })[0]).toHaveAttribute(
+      "href",
+      "/customers/cust-1",
+    )
   })
 
   it("shows voided state and reason for voided sales", () => {

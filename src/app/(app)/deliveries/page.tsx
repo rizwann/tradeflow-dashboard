@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
 
+import { EmptyState } from "@/components/shared/empty-state"
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
+import { calculateDeliveryInsights } from "@/features/analytics/customer-delivery-analytics"
+import { DeliveryOverviewCards } from "@/features/deliveries/delivery-overview-cards"
 import { DeliveryTable, type DeliveryTableRow } from "@/features/deliveries/delivery-table"
 import { DeliveriesExportButton } from "@/features/deliveries/deliveries-export-button"
 import { requireRole } from "@/lib/auth"
@@ -96,6 +99,14 @@ export default async function DeliveriesPage() {
     deliveredAt: row.deliveredAt,
   }))
 
+  const deliveryInsights = calculateDeliveryInsights(
+    rows.map((row) => ({
+      status: row.status,
+      deliveryCost: row.deliveryCost,
+      deliveryCostPaidBy: row.deliveryCostPaidBy,
+    })),
+  )
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -104,11 +115,22 @@ export default async function DeliveriesPage() {
         actions={<DeliveriesExportButton rows={exportRows} />}
       />
 
-      <DeliveryTable
-        deliveries={rows}
-        currentUserId={session.user.id}
-        currentUserRole={session.profile.role}
-      />
+      {rows.length === 0 ? (
+        <EmptyState
+          title="No deliveries yet"
+          description="Deliveries are created from sales once an order needs fulfilment tracking."
+        />
+      ) : (
+        <>
+          <DeliveryOverviewCards insights={deliveryInsights} />
+
+          <DeliveryTable
+            deliveries={rows}
+            currentUserId={session.user.id}
+            currentUserRole={session.profile.role}
+          />
+        </>
+      )}
     </div>
   )
 }

@@ -62,6 +62,7 @@ describe("customer and delivery analytics", () => {
     expect(insights.retentionRate).toBeCloseTo(33.33, 2)
     expect(insights.bestCustomerByRevenue?.customerName).toBe("Ayesha")
     expect(insights.bestCustomerByRevenue?.revenue).toBe(1050)
+    expect(insights.bestCustomerByRevenue?.averageOrderValue).toBe(525)
     expect(insights.bestCustomerByProfit?.profit).toBe(380)
     expect(insights.topCustomers[0]?.lastOrderDate).toBe("2026-05-11T00:00:00.000Z")
   })
@@ -95,6 +96,7 @@ describe("customer and delivery analytics", () => {
     expect(insights.cancelledDeliveries).toBe(1)
     expect(insights.completionRate).toBeCloseTo(33.33, 2)
     expect(insights.businessPaidDeliveryCost).toBe(200)
+    expect(insights.customerPaidDeliveryCost).toBe(100)
     expect(insights.averageDeliveryCost).toBe(100)
     expect(insights.customerPaidDeliveryPercentage).toBe(50)
   })
@@ -204,12 +206,19 @@ describe("customer and delivery analytics", () => {
           deliveryCostPaidBy: "customer",
         },
       ],
+      saleProfits: [
+        { saleId: "s1", grossProfit: 160 },
+        { saleId: "s2", grossProfit: 90 },
+        { saleId: "s3", grossProfit: 150 },
+      ],
     })
 
     expect(insights.deliveredOrders).toBe(1)
     expect(insights.pendingDeliveries).toBe(1)
     expect(insights.totalDeliverySpend).toBe(200)
+    expect(insights.totalProfit).toBe(400)
     expect(insights.averageOrderValue).toBeCloseTo(433.33, 2)
+    expect(insights.latestDeliveryStatus).toBe("delivered")
     expect(insights.favoriteProduct).toEqual({
       productName: "Soap",
       quantitySold: 3,

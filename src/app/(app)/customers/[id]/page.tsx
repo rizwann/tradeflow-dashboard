@@ -81,6 +81,11 @@ type DeliveryRow = {
   created_at: string | null
 }
 
+type CustomerSaleProfitRow = {
+  sale_id: string
+  gross_profit: number
+}
+
 export async function generateMetadata({
   params,
 }: CustomerDetailPageProps): Promise<Metadata> {
@@ -201,6 +206,7 @@ export default async function CustomerDetailPage({
     { data: customer, error: customerError },
     { data: sales, error: salesError },
     { data: deliveries, error: deliveriesError },
+    { data: saleProfits, error: saleProfitsError },
   ] = await Promise.all([
     supabase
       .from("customers")
@@ -224,10 +230,16 @@ export default async function CustomerDetailPage({
       .eq("customer_id", id)
       .order("created_at", { ascending: false })
       .returns<DeliveryRow[]>(),
+    supabase
+      .from("sale_batch_consumptions")
+      .select("sale_id, gross_profit, sales!inner(customer_id, status)")
+      .eq("sales.customer_id", id)
+      .eq("sales.status", "active")
+      .returns<CustomerSaleProfitRow[]>(),
   ])
 
-  if (customerError || salesError || deliveriesError) {
-    throw customerError ?? salesError ?? deliveriesError
+  if (customerError || salesError || deliveriesError || saleProfitsError) {
+    throw customerError ?? salesError ?? deliveriesError ?? saleProfitsError
   }
 
   if (!customer) {
@@ -266,6 +278,10 @@ export default async function CustomerDetailPage({
       status: delivery.status,
       deliveryCost: Number(delivery.delivery_cost),
       deliveryCostPaidBy: delivery.delivery_cost_paid_by,
+    })),
+    saleProfits: (saleProfits ?? []).map((saleProfit) => ({
+      saleId: saleProfit.sale_id,
+      grossProfit: Number(saleProfit.gross_profit),
     })),
   })
   const salesById = new Map(salesWithRevenue.map((sale) => [sale.id, sale]))
@@ -344,6 +360,40 @@ export default async function CustomerDetailPage({
               </div>
             </div>
 
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="surface-panel-subtle rounded-[1.45rem] px-4 py-4">
+                <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                  Repeat Purchase Signal
+                </p>
+                <p className="mt-2 text-base font-semibold tracking-tight">
+                  {customerDetailInsights.activeOrders > 1
+                    ? "Repeat buyer"
+                    : "Single active order"}
+                </p>
+              </div>
+              <div className="surface-panel-subtle rounded-[1.45rem] px-4 py-4">
+                <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                  Latest Delivery Status
+                </p>
+                <div className="mt-2">
+                  {customerDetailInsights.latestDeliveryStatus ? (
+                    <Badge
+                      variant="outline"
+                      className={getDeliveryStatusBadgeClassName(
+                        customerDetailInsights.latestDeliveryStatus,
+                      )}
+                    >
+                      {formatLabel(customerDetailInsights.latestDeliveryStatus)}
+                    </Badge>
+                  ) : (
+                    <p className="text-base font-semibold tracking-tight">
+                      No delivery yet
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {customer.notes ? (
               <div className="rounded-[1.45rem] border border-border/60 bg-muted/24 px-4 py-4">
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
@@ -406,9 +456,14 @@ export default async function CustomerDetailPage({
           description="All recorded orders, including voided sales."
         />
         <MetricCard
-          title="Total revenue"
+          title="Customer lifetime value"
           value={formatBDT(customerDetailInsights.totalRevenue)}
-          description="Revenue from active sales only."
+          description="Active-sale revenue attributed to this customer."
+        />
+        <MetricCard
+          title="Total profit"
+          value={formatBDT(customerDetailInsights.totalProfit)}
+          description="FIFO-backed gross profit from active linked sales."
         />
         <MetricCard
           title="Average order value"
@@ -449,10 +504,10 @@ export default async function CustomerDetailPage({
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card className="min-w-0">
           <CardHeader>
-            <p className="eyebrow-label">Recent Orders</p>
+            <p className="eyebrow-label">Order Timeline</p>
             <CardTitle>Sales linked to this customer</CardTitle>
             <CardDescription>
-              Product, revenue, payment state, and order status history.
+              Product, revenue, payment state, and order status in reverse chronology.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -574,10 +629,10 @@ export default async function CustomerDetailPage({
 
         <Card className="min-w-0">
           <CardHeader>
-            <p className="eyebrow-label">Delivery History</p>
+            <p className="eyebrow-label">Delivery Timeline</p>
             <CardTitle>Shipment and handoff progress</CardTitle>
             <CardDescription>
-              Delivery status, cost ownership, and fulfilment timing for this customer.
+              Delivery status, cost ownership, and fulfilment timing in sequence.
             </CardDescription>
           </CardHeader>
           <CardContent>

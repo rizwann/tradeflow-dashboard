@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 
 import { ErrorState } from "@/components/shared/error-state"
 import { PageHeader } from "@/components/shared/page-header"
+import { calculateCustomerInsights } from "@/features/analytics/customer-delivery-analytics"
 import { Button } from "@/components/ui/button"
 import { CustomerTable, type CustomerSummaryRow } from "@/features/customers/customer-table"
 import { CustomersExportButton } from "@/features/customers/customers-export-button"
@@ -26,17 +27,31 @@ type CustomerRecord = {
 }
 
 type CustomerSaleAggregateRow = {
+  id: string
   customer_id: string | null
+  sale_date: string
   quantity: number
   unit_selling_price_bdt: number
   discount: number | null
+  customers: {
+    name: string
+  } | null
+}
+
+type CustomerSaleProfitRow = {
+  sale_id: string
+  gross_profit: number
 }
 
 export default async function CustomersPage() {
   const session = await requireRole(["admin", "partner"])
   const supabase = await createClient()
 
-  const [{ data: customers, error: customersError }, { data: sales, error: salesError }] =
+  const [
+    { data: customers, error: customersError },
+    { data: sales, error: salesError },
+    { data: saleProfits, error: saleProfitsError },
+  ] =
     await Promise.all([
       supabase
         .from("customers")
@@ -45,44 +60,57 @@ export default async function CustomersPage() {
         .returns<CustomerRecord[]>(),
       supabase
         .from("sales")
-        .select("customer_id, quantity, unit_selling_price_bdt, discount")
+        .select(
+          "id, customer_id, sale_date, quantity, unit_selling_price_bdt, discount, customers(name)",
+        )
         .eq("status", "active")
         .not("customer_id", "is", null)
         .returns<CustomerSaleAggregateRow[]>(),
+      supabase
+        .from("sale_batch_consumptions")
+        .select("sale_id, gross_profit, sales!inner(status)")
+        .eq("sales.status", "active")
+        .returns<CustomerSaleProfitRow[]>(),
     ])
 
-  if (customersError || salesError) {
+  if (customersError || salesError || saleProfitsError) {
     return (
       <ErrorState
         title="Could not load customers"
-        message={(customersError ?? salesError)?.message}
+        message={(customersError ?? salesError ?? saleProfitsError)?.message}
       />
     )
   }
 
-  const salesSummaryByCustomer = new Map<
-    string,
-    { ordersCount: number; totalRevenue: number }
-  >()
+  const customerInsights = calculateCustomerInsights({
+    customers: (customers ?? []).map((customer) => ({
+      id: customer.id,
+      name: customer.name,
+      createdAt: customer.created_at,
+    })),
+    sales: (sales ?? []).map((sale) => ({
+      id: sale.id,
+      customerId: sale.customer_id,
+      customerName: sale.customers?.name ?? null,
+      productId: "",
+      productName: null,
+      quantity: Number(sale.quantity),
+      unitSellingPriceBdt: Number(sale.unit_selling_price_bdt),
+      discount: sale.discount,
+      saleDate: sale.sale_date,
+    })),
+    saleProfits: (saleProfits ?? []).map((saleProfit) => ({
+      saleId: saleProfit.sale_id,
+      grossProfit: Number(saleProfit.gross_profit),
+    })),
+  })
 
-  for (const sale of sales ?? []) {
-    if (!sale.customer_id) continue
-
-    const existingSummary = salesSummaryByCustomer.get(sale.customer_id) ?? {
-      ordersCount: 0,
-      totalRevenue: 0,
-    }
-
-    existingSummary.ordersCount += 1
-    existingSummary.totalRevenue +=
-      Number(sale.quantity) * Number(sale.unit_selling_price_bdt) -
-      Number(sale.discount ?? 0)
-
-    salesSummaryByCustomer.set(sale.customer_id, existingSummary)
-  }
+  const customerSummaryById = new Map(
+    customerInsights.topCustomers.map((customer) => [customer.customerId, customer]),
+  )
 
   const customerRows: CustomerSummaryRow[] = (customers ?? []).map((customer) => {
-    const summary = salesSummaryByCustomer.get(customer.id)
+    const summary = customerSummaryById.get(customer.id)
 
     return {
       id: customer.id,
@@ -94,7 +122,9 @@ export default async function CustomersPage() {
       createdAt: customer.created_at,
       createdBy: customer.created_by,
       ordersCount: summary?.ordersCount ?? 0,
-      totalRevenue: summary?.totalRevenue ?? 0,
+      totalRevenue: summary?.revenue ?? 0,
+      totalProfit: summary?.profit ?? 0,
+      lastOrderDate: summary?.lastOrderDate ?? null,
     }
   })
 

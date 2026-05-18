@@ -42,7 +42,7 @@ export function MobileNav({ role }: MobileNavProps) {
 
       <SheetContent
         side="left"
-        className="w-[85vw] max-w-80 border-sidebar-border/70 bg-sidebar/95 text-sidebar-foreground"
+        className="flex w-[85vw] max-w-80 flex-col border-sidebar-border/70 bg-sidebar/95 text-sidebar-foreground"
       >
         <SheetHeader>
           <SheetTitle className="flex items-center gap-3">
@@ -64,44 +64,46 @@ export function MobileNav({ role }: MobileNavProps) {
           </p>
         </div>
 
-        <nav className="mt-3 space-y-2 px-3 pb-4">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon
-            const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`)
+        <nav className="sidebar-scroll mt-3 flex-1 overflow-y-auto px-3 pb-4">
+          <div className="space-y-2 pr-1">
+            {visibleNavItems.map((item) => {
+              const Icon = item.icon
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`)
 
-            return (
-              <SheetClose key={item.href} asChild>
-                <Link
-                  href={item.href}
-                  aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "relative flex min-h-11 items-center gap-3 rounded-[1.2rem] border px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-150 hover:-translate-y-0.5 hover:border-sidebar-border/80 hover:bg-sidebar-accent/72 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                    isActive
-                      ? "border-sidebar-border/80 bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
-                      : "border-transparent",
-                  )}
-                >
-                  <span
-                    aria-hidden="true"
+              return (
+                <SheetClose key={item.href} asChild>
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "absolute inset-y-3 left-1.5 w-1 rounded-full transition-colors",
-                      isActive ? "bg-sidebar-primary" : "bg-transparent",
-                    )}
-                  />
-                  <Icon
-                    className={cn(
-                      "h-4 w-4",
+                      "relative flex min-h-11 items-center gap-3 rounded-[1.2rem] border px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-150 hover:-translate-y-0.5 hover:border-sidebar-border/80 hover:bg-sidebar-accent/72 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                       isActive
-                        ? "text-sidebar-primary"
-                        : "text-muted-foreground",
+                        ? "border-sidebar-border/80 bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+                        : "border-transparent",
                     )}
-                  />
-                  {item.title}
-                </Link>
-              </SheetClose>
-            )
-          })}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute inset-y-3 left-1.5 w-1 rounded-full transition-colors",
+                        isActive ? "bg-sidebar-primary" : "bg-transparent",
+                      )}
+                    />
+                    <Icon
+                      className={cn(
+                        "h-4 w-4",
+                        isActive
+                          ? "text-sidebar-primary"
+                          : "text-muted-foreground",
+                      )}
+                    />
+                    {item.title}
+                  </Link>
+                </SheetClose>
+              )
+            })}
+          </div>
         </nav>
       </SheetContent>
     </Sheet>

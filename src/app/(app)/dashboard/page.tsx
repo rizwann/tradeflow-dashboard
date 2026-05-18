@@ -684,7 +684,7 @@ export default async function DashboardPage() {
           <MetricCard
             title="Net Profit"
             value={formatBDT(netProfit)}
-            description="Gross profit minus BDT expenses and business delivery cost."
+            description="Gross Profit - BDT expenses - business-paid delivery costs."
           />
           <MetricCard
             title="Profit Margin"

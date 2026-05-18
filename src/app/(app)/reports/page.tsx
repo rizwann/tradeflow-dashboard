@@ -2,7 +2,6 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { ErrorState } from "@/components/shared/error-state"
 import { MetricCard } from "@/components/shared/metric-card"
 import { PageHeader } from "@/components/shared/page-header"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -11,18 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   calculateCustomerInsights,
   calculateDeliveryInsights,
   calculateSaleRevenue,
 } from "@/features/analytics/customer-delivery-analytics"
+import { CustomerPerformanceTable } from "@/features/reports/customer-performance-table"
+import { DeliveryPerformanceSummary } from "@/features/reports/delivery-performance-summary"
 import { MonthlyReportChart } from "@/features/reports/monthly-report-chart"
 import { ProductProfitTable } from "@/features/reports/product-profit-table"
 import { ReportsExportButtons } from "@/features/reports/reports-export-buttons"
@@ -97,73 +90,12 @@ type MonthlyMetric = {
   expenses: number
 }
 
-const deliveryStatusOrder = [
-  "pending",
-  "shipped",
-  "delivered",
-  "cancelled",
-] as const
-
-const deliveryStatusMeta: Record<
-  DeliveryCostRow["status"],
-  {
-    label: string
-    barClassName: string
-    badgeClassName: string
-  }
-> = {
-  pending: {
-    label: "Pending",
-    barClassName: "bg-amber-500/80 dark:bg-amber-400/80",
-    badgeClassName:
-      "border-amber-200/80 bg-amber-500/10 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300",
-  },
-  shipped: {
-    label: "Shipped",
-    barClassName: "bg-sky-500/80 dark:bg-sky-400/80",
-    badgeClassName:
-      "border-sky-200/80 bg-sky-500/10 text-sky-700 dark:border-sky-500/25 dark:bg-sky-500/15 dark:text-sky-300",
-  },
-  delivered: {
-    label: "Delivered",
-    barClassName: "bg-emerald-500/80 dark:bg-emerald-400/80",
-    badgeClassName:
-      "border-emerald-200/80 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-300",
-  },
-  cancelled: {
-    label: "Cancelled",
-    barClassName: "bg-red-500/80 dark:bg-red-400/80",
-    badgeClassName:
-      "border-red-200/80 bg-red-500/10 text-red-700 dark:border-red-500/25 dark:bg-red-500/15 dark:text-red-300",
-  },
-}
-
 function formatBDT(value: number) {
   return `৳${Math.round(value).toLocaleString("en-US")}`
 }
 
-function formatPercent(value: number) {
-  return `${value.toFixed(1)}%`
-}
-
 function formatQuantity(value: number) {
   return value.toLocaleString("en-US")
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "No orders yet"
-
-  const parsedDate = new Date(value)
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(parsedDate)
 }
 
 function getMonthParts(date: string) {
@@ -460,6 +392,19 @@ export default async function ReportsPage() {
   )
 
   const topCustomers = customerInsights.topCustomers.slice(0, 5)
+  const reportCustomerExportRows = customerInsights.topCustomers.map((customer) => ({
+    customerName: customer.customerName,
+    ordersCount: customer.ordersCount,
+    revenue: customer.revenue,
+    profit: customer.profit,
+    averageOrderValue: customer.averageOrderValue,
+    lastOrderDate: customer.lastOrderDate,
+  }))
+  const reportDeliveryExportRows = deliveryRows.map((delivery) => ({
+    status: delivery.status,
+    deliveryCost: Number(delivery.delivery_cost),
+    deliveryCostPaidBy: delivery.delivery_cost_paid_by,
+  }))
 
   return (
     <div className="min-w-0 space-y-6">
@@ -470,6 +415,8 @@ export default async function ReportsPage() {
           <ReportsExportButtons
             productRows={productProfitRows}
             shipmentRows={shipmentProfitRows}
+            customerRows={reportCustomerExportRows}
+            deliveryRows={reportDeliveryExportRows}
           />
         }
       />
@@ -493,7 +440,7 @@ export default async function ReportsPage() {
         <MetricCard
           title="Net Profit"
           value={formatBDT(netProfit)}
-          description="Gross profit minus BDT expenses and business-paid delivery costs."
+          description="Gross Profit - BDT expenses - business-paid delivery costs."
         />
       </div>
 
@@ -560,94 +507,14 @@ export default async function ReportsPage() {
                 </p>
                 <CardTitle>Revenue-ranked customer table</CardTitle>
                 <CardDescription>
-                  Active-sale revenue, order count, FIFO profit, and last order date.
+                  Active-sale revenue, FIFO-backed profit, order count, average order value, and last order date.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-3 md:hidden">
-                  {topCustomers.map((customer, index) => (
-                    <div
-                      key={customer.customerId}
-                      className="surface-panel-subtle rounded-[1.45rem] p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-semibold tracking-[-0.02em]">
-                            {customer.customerName}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Last order {formatDate(customer.lastOrderDate)}
-                          </p>
-                        </div>
-                        <Badge variant="outline">#{index + 1}</Badge>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-2 gap-3">
-                        <div className="surface-tile px-3 py-3">
-                          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                            Orders
-                          </p>
-                          <p className="mt-2 text-sm font-semibold">
-                            {formatQuantity(customer.ordersCount)}
-                          </p>
-                        </div>
-                        <div className="surface-tile px-3 py-3">
-                          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                            Revenue
-                          </p>
-                          <p className="mt-2 text-sm font-semibold">
-                            {formatBDT(customer.revenue)}
-                          </p>
-                        </div>
-                        <div className="surface-tile px-3 py-3 col-span-2">
-                          <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                            Profit
-                          </p>
-                          <p className="mt-2 text-sm font-semibold">
-                            {customerInsights.hasProfitData
-                              ? formatBDT(customer.profit)
-                              : "Pending"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="hidden md:block overflow-x-auto">
-                  <Table className="min-w-[44rem]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead className="text-right">Orders</TableHead>
-                        <TableHead className="text-right">Revenue</TableHead>
-                        <TableHead className="text-right">Profit</TableHead>
-                        <TableHead>Last Order</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {topCustomers.map((customer) => (
-                        <TableRow key={customer.customerId}>
-                          <TableCell className="font-medium">
-                            {customer.customerName}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatQuantity(customer.ordersCount)}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {formatBDT(customer.revenue)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {customerInsights.hasProfitData
-                              ? formatBDT(customer.profit)
-                              : "Pending"}
-                          </TableCell>
-                          <TableCell>{formatDate(customer.lastOrderDate)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <CustomerPerformanceTable
+                  rows={topCustomers}
+                  hasProfitData={customerInsights.hasProfitData}
+                />
               </CardContent>
             </Card>
           </>
@@ -670,103 +537,7 @@ export default async function ReportsPage() {
             description="Linked delivery records will populate completion and cost reporting here."
           />
         ) : (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                title="Completion Rate"
-                value={formatPercent(deliveryInsights.completionRate)}
-                description="Delivered share of non-cancelled deliveries."
-              />
-              <MetricCard
-                title="Business Delivery Cost"
-                value={formatBDT(deliveryInsights.businessPaidDeliveryCost)}
-                description="Only non-cancelled business-paid delivery cost."
-              />
-              <MetricCard
-                title="Average Delivery Cost"
-                value={formatBDT(deliveryInsights.averageDeliveryCost)}
-                description="Average across all non-cancelled deliveries."
-              />
-              <MetricCard
-                title="Customer-Paid Share"
-                value={formatPercent(
-                  deliveryInsights.customerPaidDeliveryPercentage,
-                )}
-                description="Customer-paid deliveries as a share of all delivery records."
-              />
-            </div>
-
-            <Card className="border-border/60 bg-card/78">
-              <CardHeader className="pb-3">
-                <p className="text-[0.68rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
-                  Delivery Completion Summary
-                </p>
-                <CardTitle>Status mix</CardTitle>
-                <CardDescription>
-                  Compact view of the pending-to-delivered pipeline.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="surface-panel-subtle rounded-[1.45rem] p-4">
-                  <div className="flex h-3 overflow-hidden rounded-full bg-muted/80">
-                    {deliveryStatusOrder.map((status) => {
-                      const count =
-                        status === "pending"
-                          ? deliveryInsights.pendingDeliveries
-                          : status === "shipped"
-                            ? deliveryInsights.shippedDeliveries
-                            : status === "delivered"
-                              ? deliveryInsights.deliveredDeliveries
-                              : deliveryInsights.cancelledDeliveries
-
-                      const width =
-                        deliveryInsights.totalDeliveries === 0
-                          ? 0
-                          : (count / deliveryInsights.totalDeliveries) * 100
-
-                      return (
-                        <div
-                          key={status}
-                          className={deliveryStatusMeta[status].barClassName}
-                          style={{ width: `${width}%` }}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {deliveryStatusOrder.map((status) => {
-                    const count =
-                      status === "pending"
-                        ? deliveryInsights.pendingDeliveries
-                        : status === "shipped"
-                          ? deliveryInsights.shippedDeliveries
-                          : status === "delivered"
-                            ? deliveryInsights.deliveredDeliveries
-                            : deliveryInsights.cancelledDeliveries
-
-                    return (
-                      <div
-                        key={status}
-                        className="surface-tile flex items-center justify-between gap-3 px-4 py-3"
-                      >
-                        <Badge
-                          variant="outline"
-                          className={deliveryStatusMeta[status].badgeClassName}
-                        >
-                          {deliveryStatusMeta[status].label}
-                        </Badge>
-                        <p className="text-sm font-semibold">
-                          {formatQuantity(count)}
-                        </p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </>
+          <DeliveryPerformanceSummary insights={deliveryInsights} />
         )}
       </section>
 

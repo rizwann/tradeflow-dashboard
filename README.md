@@ -55,9 +55,16 @@ Built with Next.js, Supabase, TypeScript, Tailwind, and shadcn/ui.
 
 ### Sales System
 - Transaction-safe sale recording
+- Customer-linked sales
 - FIFO consumption allocation
 - Sale void/reversal flow
 - Payment status tracking
+
+### Customer & Delivery Operations
+- Customers module
+- Delivery tracking from sales
+- Delivery cost accounting
+- Customer analytics and repeat-buyer insights
 
 ### Expenses & Accounting
 - Expense tracking

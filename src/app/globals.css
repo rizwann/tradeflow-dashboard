@@ -328,7 +328,8 @@ html.dark {
 
   .sidebar-scroll {
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
     scrollbar-width: thin;
     scrollbar-color:
       color-mix(in oklab, var(--muted-foreground) 28%, transparent)

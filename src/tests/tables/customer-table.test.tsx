@@ -14,6 +14,8 @@ describe("CustomerTable", () => {
     createdBy: "user-1",
     ordersCount: 3,
     totalRevenue: 12500,
+    totalProfit: 4200,
+    lastOrderDate: "2026-05-18T08:00:00.000Z",
   }
 
   it("shows edit action for admin", () => {
@@ -39,5 +41,17 @@ describe("CustomerTable", () => {
 
     expect(screen.getAllByLabelText(/view customer rahim traders/i).length).toBeGreaterThan(0)
     expect(screen.queryByLabelText(/edit customer rahim traders/i)).not.toBeInTheDocument()
+  })
+
+  it("shows returning customer badge when orders exceed one", () => {
+    render(
+      <CustomerTable
+        customers={[customer]}
+        currentUserId="user-1"
+        currentUserRole="partner"
+      />,
+    )
+
+    expect(screen.getAllByText(/returning customer/i).length).toBeGreaterThan(0)
   })
 })
