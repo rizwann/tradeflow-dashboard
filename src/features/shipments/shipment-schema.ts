@@ -17,7 +17,7 @@ export const shipmentSchema = z.object({
 })
 
 export const shipmentItemSchema = z.object({
-  product_id: z.string().uuid("Product is required"),
+  product_id: z.string().min(1, "Select a product"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
 })
 
