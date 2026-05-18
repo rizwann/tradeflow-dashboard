@@ -3,11 +3,10 @@
 import { ExportButton } from "@/components/shared/export-button"
 
 type SaleExportRow = {
-  productName: string
-  quantity: number
-  unit_selling_price_bdt: number
-  discount: number
-  revenue: number
+  items_summary: string
+  item_count: number
+  total_quantity: number
+  total_revenue: number
   sale_date: string
   payment_status: string
   status: string
@@ -24,20 +23,16 @@ export function SalesExportButton({ rows }: { rows: SaleExportRow[] }) {
       filename="tradeflow-sales.csv"
       rows={rows}
       columns={[
-        { label: "Product", value: (row) => row.productName },
-        { label: "Quantity", value: (row) => row.quantity },
-        {
-          label: "Unit Selling Price BDT",
-          value: (row) => row.unit_selling_price_bdt,
-        },
-        { label: "Discount", value: (row) => row.discount },
-        { label: "Revenue", value: (row) => row.revenue },
-        { label: "Sale Date", value: (row) => row.sale_date },
-        { label: "Payment Status", value: (row) => row.payment_status },
-        { label: "Status", value: (row) => row.status },
+        { label: "Items Summary", value: (row) => row.items_summary },
+        { label: "Item Count", value: (row) => row.item_count },
+        { label: "Total Quantity", value: (row) => row.total_quantity },
+        { label: "Total Revenue", value: (row) => row.total_revenue },
         { label: "Customer Name", value: (row) => row.customer_name ?? "" },
         { label: "Customer Phone", value: (row) => row.customer_phone ?? "" },
+        { label: "Payment Status", value: (row) => row.payment_status },
         { label: "Delivery Status", value: (row) => row.delivery_status ?? "" },
+        { label: "Sale Status", value: (row) => row.status },
+        { label: "Sale Date", value: (row) => row.sale_date },
         { label: "Delivery Cost", value: (row) => row.delivery_cost ?? "" },
         {
           label: "Delivery Cost Paid By",
